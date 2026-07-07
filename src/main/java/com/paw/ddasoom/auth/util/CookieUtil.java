@@ -6,10 +6,12 @@ import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseCookie;
+import org.springframework.stereotype.Component;
 
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 
+@Component
 public class CookieUtil {
   public static final String REFRESH_COOKIE_NAME = "refreshToken";
 
