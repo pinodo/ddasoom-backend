@@ -38,9 +38,9 @@ public class Foster extends BaseTimeEntity {
   @Column(name = "foster_id", nullable = false)
   private Long fosterId;
 
-  @ManyToOne(fetch = FetchType.LAZY, optional = false)
-  @JoinColumn(name = "animal_id", nullable = false, foreignKey = @ForeignKey(name = "fk_foster_animal"))
-  private Animal animal;
+  // @ManyToOne(fetch = FetchType.LAZY, optional = false)
+  // @JoinColumn(name = "animal_id", nullable = false, foreignKey = @ForeignKey(name = "fk_foster_animal"))
+  // private Animal animal;
 
   @ManyToOne(fetch = FetchType.LAZY, optional = false)
   @JoinColumn(name = "user_id", nullable = false, foreignKey = @ForeignKey(name = "fk_foster_user"))
