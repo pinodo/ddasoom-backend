@@ -28,7 +28,6 @@ import lombok.NoArgsConstructor;
         @UniqueConstraint(name = "uk_animal_abandonment", columnNames = "abandonment_id")
     }
 )
-@Check(name = "chk_animal_weight", constraints = "weight > 0")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Builder
@@ -59,20 +58,14 @@ public class Animal extends BaseTimeEntity {
   @Column(name = "type_name", nullable = false, length = 50)
   private String typeName; // 품종 이름
 
-  @Column(name = "age", nullable = false, columnDefinition = "SMALLINT UNSIGNED")
-  private int age; // 출생 연도 (예: 2026) - 공공API 원본 파싱 결과
-
-  @Column(name = "raw_age", length = 50)
-  private String rawAge; // 나이 원본 문자열 (공공API 그대로, 파싱 실패 추적용)
+  @Column(name = "age", nullable = false, length = 20)
+  private String age; // 출생 연도 (예: 2026(년도))
 
   @Column(name = "location", nullable = false, length = 100)
   private String location;
 
-  @Column(name = "weight", nullable = false, precision = 5, scale = 2)
-  private int weight; // 몸무게 (kg) - 공공API 원본 파싱 결과
-
-  @Column(name = "raw_weight", length = 50)
-  private String rawWeight; // 몸무게 원본 문자열 (공공API 그대로, 파싱 실패 추적용)
+  @Column(name = "weight", nullable = false, length = 20)
+  private String weight; // 몸무게 (kg)
 
   @Column(name = "color", nullable = false, length = 50)
   private String color;
