@@ -4,6 +4,8 @@ import com.paw.ddasoom.common.util.BaseTimeEntity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.ForeignKey;
 import jakarta.persistence.GeneratedValue;
@@ -31,8 +33,9 @@ public class MemberSocial extends BaseTimeEntity{
   @Column(name = "member_social_id")
   private Long id;
 
+  @Enumerated(EnumType.STRING)
   @Column(nullable = false, length = 20)
-  private String provider; // KAKAO, NAVER, GOOGLE
+  private SocialProvider provider; // KAKAO, NAVER, GOOGLE
 
   @Column(name = "provider_id", nullable = false)
   private String providerId;
@@ -43,7 +46,7 @@ public class MemberSocial extends BaseTimeEntity{
   private Member member;
 
   @Builder
-  public MemberSocial(String provider, String providerId, Member member) {
+  public MemberSocial(SocialProvider provider, String providerId, Member member) {
       this.provider = provider;
       this.providerId = providerId;
       this.member = member;
