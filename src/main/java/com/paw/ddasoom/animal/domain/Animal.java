@@ -2,6 +2,9 @@ package com.paw.ddasoom.animal.domain;
 
 import java.time.LocalDateTime;
 
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
+
 import com.paw.ddasoom.common.util.BaseTimeEntity;
 
 import jakarta.persistence.Column;
@@ -50,7 +53,8 @@ public class Animal extends BaseTimeEntity {
 
   @Builder.Default
   @Enumerated(EnumType.STRING)
-  @Column(name = "gender", nullable = false, length = 20)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  @Column(name = "gender", nullable = false, length = 1)
   private AnimalGender gender = AnimalGender.Q;
 
   @Column(name = "type_name", nullable = false, length = 50)
