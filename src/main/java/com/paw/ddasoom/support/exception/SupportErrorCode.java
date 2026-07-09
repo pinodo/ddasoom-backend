@@ -4,7 +4,12 @@ import org.springframework.http.HttpStatus;
 
 import com.paw.ddasoom.common.exception.ErrorCode;
 
-public enum ErrorCode implements ErrorCode {
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+
+@Getter
+@RequiredArgsConstructor
+public enum SupportErrorCode implements ErrorCode {
 
   NOTICE_NOT_FOUND(HttpStatus.NOT_FOUND, "SUPPORT_001", "해당 공지사항을 찾을 수 없습니다.");
 
