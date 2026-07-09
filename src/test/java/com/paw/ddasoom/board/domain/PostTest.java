@@ -65,6 +65,27 @@ public class PostTest {
         assertThat(post.getCommentCount()).isEqualTo(1);
     }
 
+    // 게시글 업데이트 테스트
+    @Test
+    @DisplayName("게시글을 수정하면 게시판·카테고리·제목·본문이 모두 변경된다")
+    void updatePostTest() {
 
+        // given
+        Post post = Post.builder()
+                .title("테스트 제목")
+                .content("테스트 내용")
+                .boardType(BoardType.PET_INFO)
+                .category("고양이")
+                .build();
+
+        // when
+        post.update(BoardType.ADOPTION_REVIEW, "강아지", "수정된 제목", "수정된 내용");
+
+        // then
+        assertThat(post.getBoardType()).isEqualTo(BoardType.ADOPTION_REVIEW);
+        assertThat(post.getCategory()).isEqualTo("강아지");
+        assertThat(post.getTitle()).isEqualTo("수정된 제목");
+        assertThat(post.getContent()).isEqualTo("수정된 내용");
+    }
 
 }
