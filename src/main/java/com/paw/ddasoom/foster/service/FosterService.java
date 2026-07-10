@@ -1,6 +1,7 @@
 package com.paw.ddasoom.foster.service;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.paw.ddasoom.animal.domain.Animal;
 import com.paw.ddasoom.animal.exception.AnimalErrorCode;
@@ -14,7 +15,7 @@ import com.paw.ddasoom.member.exception.MemberErrorCode;
 import com.paw.ddasoom.member.exception.MemberException;
 import com.paw.ddasoom.member.repository.MemberRepository;
 
-import jakarta.transaction.Transactional;
+
 import lombok.RequiredArgsConstructor;
 
 @Service

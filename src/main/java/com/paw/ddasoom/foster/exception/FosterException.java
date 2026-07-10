@@ -1,5 +1,11 @@
 package com.paw.ddasoom.foster.exception;
 
-public class FosterException {
+import com.paw.ddasoom.common.exception.BusinessException;
+
+public class FosterException extends BusinessException {
+
+  public FosterException(FosterErrorCode errorCode) {
+    super(errorCode);
+  }
 
 }
