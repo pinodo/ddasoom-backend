@@ -128,4 +128,36 @@ public class ImageService {
             throw new ImageException(ImageErrorCode.IMAGE_COUNT_EXCEEDED);
         }
     }
+
+    /**
+     * 수정 시 이미지 목록을 요청 상태로 동기화한다. (게시글 수정 시 호출)
+     *
+     * <p>diff 방식: 기존 활성 중 요청에 없는 것 → soft delete, 나머지는 attach() 재사용.
+     * 소유자 삭제 시 이미지 정리는 imageIds에 null/빈 리스트를 넘기면 된다 (= 전부 삭제).
+     *
+     * <p>⚠️ 썸네일 이미지가 요청에서 빠져 삭제되면 대표 이미지가 사라진 상태가 되는데,
+     * 백엔드가 다른 이미지를 자동 승격하지 않는다 — 대표 이미지는 사용자 명시적 지정 원칙 (IMAGE_FLOW 3-6).
+     * 프론트가 재지정을 유도해야 한다.
+     *
+     * @throws ImageException attach()와 동일 (IMAGE_003 / 004 / 006)
+     */
+    @Transactional
+    public void syncImages(List<Long> imageIds, OwnerType ownerType, Long ownerId) {
+        // null = 전부 삭제 요청과 동일 — 빈 리스트로 치환하면 아래 로직이 자연스럽게 전부 삭제로 동작
+        List<Long> requestedIds = imageIds != null ? imageIds : List.of();
+
+        List<Image> activeImages = imageRepository
+                .findAllByOwnerTypeAndOwnerIdAndDeletedAtIsNullOrderByImageOrderAsc(ownerType, ownerId);
+
+        // 기존 활성 중 요청에 없는 것만 soft delete (MinIO 객체는 잔존 — 고아 수용, IMAGE_FLOW 7장)
+        for (Image image : activeImages) {
+            if (!requestedIds.contains(image.getImageId())) {
+                image.softDelete();
+            }
+        }
+
+        // 이미 연결된 이미지가 섞여 있어도 안전 — attachTo()의 "같은 소유자 재연결 no-op" 덕분.
+        // 재연결 시에도 updateOrder는 수행되므로, 재정렬된 리스트를 보내면 순서 변경이 이 호출만으로 처리됨
+        attach(requestedIds, ownerType, ownerId);
+    }
 }
