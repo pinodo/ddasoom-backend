@@ -72,7 +72,7 @@ public class MemberService {
           throw new AuthException(AuthErrorCode.NICKNAME_ALREADY_EXISTS);
       }
 
-      member.updateProfile(request.getNickname(), request.getTel());
+      member.updateProfile(request.getName(), request.getNickname(), request.getTel());
       return MemberResponse.from(member);
   }
 
