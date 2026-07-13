@@ -1,8 +1,15 @@
 package com.paw.ddasoom.foster.controller;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -11,6 +18,9 @@ import org.springframework.web.bind.annotation.RestController;
 import com.paw.ddasoom.common.dto.ApiResponse;
 import com.paw.ddasoom.common.security.CustomUserDetails;
 import com.paw.ddasoom.foster.dto.request.FosterCreateRequest;
+import com.paw.ddasoom.foster.dto.request.FosterUpdateRequest;
+import com.paw.ddasoom.foster.dto.response.FosterUserDetailResponse;
+import com.paw.ddasoom.foster.dto.response.FosterUserListResponse;
 import com.paw.ddasoom.foster.service.FosterService;
 
 import jakarta.validation.Valid;
@@ -22,7 +32,7 @@ import lombok.RequiredArgsConstructor;
 public class FosterController {
 
   private final FosterService fosterService;
-  // private final FosterAdminService fosterAdminService;
+  
 
   /** 유저 임시보호신청 작성 */
   @PostMapping
@@ -36,4 +46,45 @@ public class FosterController {
         .body(ApiResponse.success("임시보호 신청이 완료되었습니다."));
   }
 
+  /** 유저 임시보호신청 수정 */
+  @PatchMapping("/{fosterId}")
+  public ResponseEntity<ApiResponse<Void>> update(
+      @AuthenticationPrincipal CustomUserDetails userDetails,
+      @PathVariable Long fosterId,
+      @Valid @RequestBody FosterUpdateRequest request) {
+
+    fosterService.update(userDetails.getMemberId(), fosterId, request);
+
+    return ResponseEntity.ok(ApiResponse.success("임시보호 신청이 수정되었습니다."));
+  }
+
+  /** 유저 임시보호신청 조회(리스트) */
+  @GetMapping("/my")
+  public ResponseEntity<ApiResponse<Page<FosterUserListResponse>>> getFosterList(
+      @AuthenticationPrincipal CustomUserDetails userDetails,
+      @PageableDefault(size = 10) Pageable pageable) {
+    Page<FosterUserListResponse> response = fosterService.getFosterList(userDetails.getMemberId(), pageable);
+
+    return ResponseEntity.ok(ApiResponse.success(response));
+  }
+
+  /** 유저 임시보호신청 조회(디테일) */
+  @GetMapping("/{fosterId}")
+  public ResponseEntity<ApiResponse<FosterUserDetailResponse>> getFosterDetail(
+      @AuthenticationPrincipal CustomUserDetails userDetails,
+      @PathVariable Long fosterId) {
+    FosterUserDetailResponse response = fosterService.getFosterDetail(userDetails.getMemberId(), fosterId);
+
+    return ResponseEntity.ok(ApiResponse.success(response));
+  }
+
+  /** 유저 임시보호신청 삭제 */
+  @DeleteMapping("/{fosterId}")
+  public ResponseEntity<ApiResponse<Void>> delete(
+      @AuthenticationPrincipal CustomUserDetails userDetails,
+      @PathVariable Long fosterId) {
+    fosterService.delete(userDetails.getMemberId(), fosterId);
+
+    return ResponseEntity.ok(ApiResponse.success("임시보호 신청이 삭제되었습니다."));
+  }
 }

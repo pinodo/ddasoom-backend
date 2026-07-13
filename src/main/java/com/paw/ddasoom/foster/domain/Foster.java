@@ -8,6 +8,8 @@ import org.hibernate.annotations.JdbcTypeCode;
 
 import com.paw.ddasoom.animal.domain.Animal;
 import com.paw.ddasoom.common.util.BaseTimeEntity;
+import com.paw.ddasoom.foster.exception.FosterErrorCode;
+import com.paw.ddasoom.foster.exception.FosterException;
 import com.paw.ddasoom.member.domain.Member;
 
 import jakarta.persistence.Column;
@@ -117,8 +119,24 @@ public class Foster extends BaseTimeEntity {
         message);
   }
 
-  public void delete() {
+  public void softDelete() {
+    if(this.deletedAt != null){
+      throw new FosterException(FosterErrorCode.ALREADY_DELETED_FOSTER);
+    }
     this.deletedAt = LocalDateTime.now();
+  }
+
+  public void updateUserRequest(String age, String job, String message) {
+    if (this.deletedAt != null) {
+      throw new FosterException(FosterErrorCode.ALREADY_DELETED_FOSTER);
+    }
+
+    if (this.status != FosterStatus.PENDING) {
+      throw new FosterException(FosterErrorCode.INVALID_FOSTER_STATUS);
+    }
+    this.age = age;
+    this.job = job;
+    this.message = message;
   }
 
 }
