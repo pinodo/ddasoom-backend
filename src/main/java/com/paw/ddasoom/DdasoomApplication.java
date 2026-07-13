@@ -6,7 +6,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 @EnableJpaAuditing
-@EnableScheduling
+@EnableScheduling // Spring Scheduler 사용
 @SpringBootApplication
 public class DdasoomApplication {
 
