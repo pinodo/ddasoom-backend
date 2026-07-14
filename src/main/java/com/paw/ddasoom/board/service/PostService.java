@@ -51,13 +51,13 @@ public class PostService {
 
     @Transactional
     public Long createPost(Long memberId, PostCreateRequest request) {
-        validateCategory(request.getBoardType(), request.getCategory());
+        BoardType boardType = parseBoardType(request.getBoardType());
+        validateCategory(boardType, request.getCategory());
         Member member = getMember(memberId);
 
-        Post post = request.toEntity(member);
+        Post post = request.toEntity(member, boardType);
         postRepository.save(post);
 
-        // 하이브리드 업로드 확정 연결 — attach(순서 확정) → setThumbnail 순 (IMAGE_FLOW 3-6)
         imageService.attach(request.getImageIds(), OwnerType.POST, post.getId());
         if (request.getThumbnailImageId() != null) {
             imageService.setThumbnail(request.getThumbnailImageId(), OwnerType.POST, post.getId());
@@ -91,11 +91,12 @@ public class PostService {
 
     @Transactional
     public void updatePost(Long memberId, Long postId, PostUpdateRequest request) {
-        validateCategory(request.getBoardType(), request.getCategory());
+        BoardType boardType = parseBoardType(request.getBoardType());
+        validateCategory(boardType, request.getCategory());
         Post post = getPost(postId);
         validateAuthor(post, memberId);
 
-        post.update(request.getBoardType(), request.getCategory(),
+        post.update(boardType, request.getCategory(),
                 request.getTitle(), request.getContent());
 
         // 수정은 diff 동기화 — 빠진 이미지 soft delete + 순서 갱신 (IMAGE_FLOW 3-6)
