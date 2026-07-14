@@ -71,7 +71,6 @@ public class AnimalLikeSyncBatch {
     redisTemplate.delete(SNAPSHOT_KEY);   // DB 반영 성공 후에만 스냅샷 통째 삭제
   }
 
-  @Transactional
   public void doFlush(
     List<AnimalLikeSyncItem> toInsert,
     List<AnimalLikeSyncItem> toDelete,
