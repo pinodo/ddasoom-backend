@@ -31,24 +31,26 @@ public class AnimalLikeSyncBatch {
   private final StringRedisTemplate redisTemplate;
   private final AnimalLikeJdbcRepository jdbcRepository;
   private static final String DIRTY_KEY = "animal:like:dirty";
-  private static final String SNAPSHOT_KEY = "animal:like:dirty:flushing";
+  private static final String SNAPSHOT_KEY = "animal:like:dirty:snapshot";
 
   @Scheduled(fixedDelay = 10_000) // 10초 간격 갱신
   @Transactional   // insert+delete+count 갱신을 한 트랜잭션으로
   public void flush() {
 
     // 이전 실행이 실패로 남긴 스냅샷이 있으면 그것부터, 없으면 현재 dirty를 원자적으로 스왑
-    if (Boolean.FALSE.equals(redisTemplate.hasKey(SNAPSHOT_KEY))) {
-      if (Boolean.FALSE.equals(redisTemplate.hasKey(DIRTY_KEY))) return;   // 할 일 없음
-      redisTemplate.rename(DIRTY_KEY, SNAPSHOT_KEY);   // 이 순간 이후 클릭은 새 DIRTY_KEY로 쌓임
+    if (Boolean.FALSE.equals(redisTemplate.hasKey(SNAPSHOT_KEY))) { // 현재 스냅샷 키가 없으면
+      if (Boolean.FALSE.equals(redisTemplate.hasKey(DIRTY_KEY))) return;   // 현재 스탭샷 키가 없고, 더티키가 없으면 -> 할 일 없음
+      redisTemplate.rename(DIRTY_KEY, SNAPSHOT_KEY);   // 현재 스냅샷 키가 없고, 더티키가 있으면 -> 이 순간 이후 클릭은 새 DIRTY_KEY로 쌓임
     }
 
+    // 스냅샷 키가 있으면 기존 스냅샷을 현재 더티에 적용
     Map<Object, Object> dirty = redisTemplate.opsForHash().entries(SNAPSHOT_KEY);
 
     List<AnimalLikeSyncItem> toInsert = new ArrayList<>();
     List<AnimalLikeSyncItem> toDelete = new ArrayList<>();
     Set<Long> affectedAnimalIds = new HashSet<>();
 
+    // 더티키를 ":"를 분기로 animalId, memberId, value값을 알아내고, value값에 따라 insert/delete로 나눔
     for (Map.Entry<Object, Object> e : dirty.entrySet()) {
       String[] parts = ((String) e.getKey()).split(":");
       Long animalId = Long.valueOf(parts[0]);
