@@ -22,6 +22,9 @@ public class AnimalLikeJdbcRepository {
   /**
    * INSERT IGNORE - UNIQUE(animal_id, member_id) 중복이면 무시 (재좋아요 안전)
    * 물리 삭제 후 복구 로직이 없음
+   * items가 100건이면, 하나의 SQL틀에 파라미터만 100개를 갈아끼워 100번의 INSERT를 전부 실행
+   * rewriteBatchedStatements=true 가 하는 일이 여기서 발생
+   * 물리적으로 한번에 DB에 저장
    */ 
   public void bulkInsertIgnore(List<AnimalLikeSyncItem> items) {
     String sql = """
