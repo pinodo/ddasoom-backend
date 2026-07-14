@@ -19,11 +19,13 @@ public class AnimalLikeService {
   // 좋아요
   public void like(Long animalId, Long memberId) {
     redisTemplate.opsForHash().put(DIRTY_KEY, field(animalId, memberId), "1");
+    redisTemplate.opsForValue().increment("animal:like:count:" + animalId);
   }
 
   // 좋아요 취소
   public void unlike(Long animalId, Long memberId) {
     redisTemplate.opsForHash().put(DIRTY_KEY, field(animalId, memberId), "0");
+    redisTemplate.opsForValue().decrement("animal:like:count:" + animalId);
   }
 
   // 키 생성 메서드

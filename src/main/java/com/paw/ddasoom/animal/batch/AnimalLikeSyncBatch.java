@@ -31,33 +31,33 @@ public class AnimalLikeSyncBatch {
   private final StringRedisTemplate redisTemplate;
   private final AnimalLikeJdbcRepository jdbcRepository;
   private static final String DIRTY_KEY = "animal:like:dirty";
+  private static final String SNAPSHOT_KEY = "animal:like:dirty:flushing";
 
-  @Scheduled(fixedDelay = 10_000) // 10초 주기 (조정 가능)
+  @Scheduled(fixedDelay = 10_000) // 10초 간격 갱신
+  @Transactional   // insert+delete+count 갱신을 한 트랜잭션으로
   public void flush() {
-    Map<Object, Object> dirty = redisTemplate.opsForHash().entries(DIRTY_KEY);
-    if (dirty.isEmpty()) return;
+
+    // 이전 실행이 실패로 남긴 스냅샷이 있으면 그것부터, 없으면 현재 dirty를 원자적으로 스왑
+    if (Boolean.FALSE.equals(redisTemplate.hasKey(SNAPSHOT_KEY))) {
+      if (Boolean.FALSE.equals(redisTemplate.hasKey(DIRTY_KEY))) return;   // 할 일 없음
+      redisTemplate.rename(DIRTY_KEY, SNAPSHOT_KEY);   // 이 순간 이후 클릭은 새 DIRTY_KEY로 쌓임
+    }
+
+    Map<Object, Object> dirty = redisTemplate.opsForHash().entries(SNAPSHOT_KEY);
 
     List<AnimalLikeSyncItem> toInsert = new ArrayList<>();
     List<AnimalLikeSyncItem> toDelete = new ArrayList<>();
     Set<Long> affectedAnimalIds = new HashSet<>();
 
-    /**
-     * 키 값에 있는 "animalId:memberId"를 ":"를 분기로 파싱하고,
-     * 좋아요나 좋아요 취소가 눌리면 각각의 ArrayList에 담음
-     */ 
     for (Map.Entry<Object, Object> e : dirty.entrySet()) {
       String[] parts = ((String) e.getKey()).split(":");
       Long animalId = Long.valueOf(parts[0]);
       Long memberId = Long.valueOf(parts[1]);
-      boolean liked = "1".equals(e.getValue());
-
-      // 좋아요 누른 동물의 아이디 값 저장
       affectedAnimalIds.add(animalId);
-
-      if (liked) toInsert.add(new AnimalLikeSyncItem(animalId, memberId, true));
-      else       toDelete.add(new AnimalLikeSyncItem(animalId, memberId, false));
+      if ("1".equals(e.getValue())) toInsert.add(new AnimalLikeSyncItem(animalId, memberId));
+      else                          toDelete.add(new AnimalLikeSyncItem(animalId, memberId));
     }
-
+    
     try {
       doFlush(toInsert, toDelete, affectedAnimalIds);
 
@@ -67,6 +67,8 @@ public class AnimalLikeSyncBatch {
     } catch (AnimalException e) {
       log.error("좋아요 배치 반영 실패, 다음 주기에 재시도합니다.", e);
     }
+
+    redisTemplate.delete(SNAPSHOT_KEY);   // DB 반영 성공 후에만 스냅샷 통째 삭제
   }
 
   @Transactional

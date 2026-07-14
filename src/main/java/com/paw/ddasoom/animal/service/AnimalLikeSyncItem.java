@@ -6,6 +6,5 @@ package com.paw.ddasoom.animal.service;
 */
 public record AnimalLikeSyncItem(
   Long animalId,
-  Long memberId,
-  boolean liked   // true=INSERT 대상, false=DELETE 대상
+  Long memberId
 ) {}
