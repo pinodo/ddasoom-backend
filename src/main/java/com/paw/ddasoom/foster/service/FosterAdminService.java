@@ -1,5 +1,7 @@
 package com.paw.ddasoom.foster.service;
 
+import java.util.List;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -7,6 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.paw.ddasoom.common.dto.PageResponse;
 import com.paw.ddasoom.foster.domain.Foster;
+import com.paw.ddasoom.foster.domain.FosterStatus;
 import com.paw.ddasoom.foster.dto.request.FosterAdminUpdateRequest;
 import com.paw.ddasoom.foster.dto.response.FosterAdminDetailResponse;
 import com.paw.ddasoom.foster.dto.response.FosterAdminListResponse;
@@ -26,6 +29,11 @@ public class FosterAdminService {
 
   private final FosterRepository fosterRepository;
   private final MemberRepository memberRepository;
+  //임시보호가 진행 중인 상태를 판단하는 목록
+  private static final List<FosterStatus> ACTIVE_FOSTER_STATUSES = List.of(
+    FosterStatus.FOSTERING, // 임시보호중
+    FosterStatus.EXTENDED   // 임시보호연장
+  );
 
   /** 관리자 임시보호신청 조회(디테일) */
   @Transactional(readOnly = true)
@@ -59,6 +67,17 @@ public class FosterAdminService {
         request.getFosterEndAt(),
         request.getFosterExtendAt(),
         request.getFosterCompleteAt());
+    
+        syncAnimalFosterStatus(foster);
+  }
+  // 업데이트시 상태값에 따른 animal 데이터 임시보호 여부 변경
+  private void syncAnimalFosterStatus(Foster foster){
+    // 현재 animalId를 가져와 임시보호중인지 연장중인지 확인
+    boolean isFostered = fosterRepository.existsByAnimal_IdAndStatusInAndDeletedAtIsNull(
+      foster.getAnimal().getId(), ACTIVE_FOSTER_STATUSES);
+
+    //animal에 임시보호 값 반영
+    foster.getAnimal().updateFosteredStatus(isFostered);
   }
   
 }
