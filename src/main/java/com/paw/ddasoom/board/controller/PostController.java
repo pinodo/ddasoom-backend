@@ -23,16 +23,7 @@ public class PostController {
 
     private final PostService postService;
 
-
-    @PostMapping
-    public ResponseEntity<ApiResponse<Long>> createPost(
-            @AuthenticationPrincipal CustomUserDetails userDetails,
-            @RequestBody PostCreateRequest request) {
-        Long postId = postService.createPost(userDetails.getMemberId(), request);
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiResponse.success("게시글이 등록되었습니다.", postId));
-    }
-
+    /** 전체 페이지 조회(기본 페이지네이션: 9), 카테고리, 보드타입 필요*/
     @GetMapping
     public ResponseEntity<ApiResponse<PageResponse<PostResponse>>> getPostList(
             @RequestParam String boardType,
@@ -42,12 +33,24 @@ public class PostController {
         return ResponseEntity.ok(ApiResponse.success("게시글 목록을 조회했습니다.", response));
     }
 
+    /** 게시글 상세 조회 */
     @GetMapping("/{postId}")
     public ResponseEntity<ApiResponse<PostDetailResponse>> getPostDetail(@PathVariable Long postId) {
         PostDetailResponse response = postService.getPostDetail(postId);
         return ResponseEntity.ok(ApiResponse.success("게시글을 조회했습니다.", response));
     }
 
+    /** 게시글 생성 */
+    @PostMapping
+    public ResponseEntity<ApiResponse<Long>> createPost(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @RequestBody PostCreateRequest request) {
+        Long postId = postService.createPost(userDetails.getMemberId(), request);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.success("게시글이 등록되었습니다.", postId));
+    }
+
+    /** 게시글 수정 */
     @PatchMapping("/{postId}")
     public ResponseEntity<ApiResponse<Void>> updatePost(
             @AuthenticationPrincipal CustomUserDetails userDetails,
@@ -57,6 +60,7 @@ public class PostController {
         return ResponseEntity.ok(ApiResponse.success("게시글이 수정되었습니다."));
     }
 
+    /** 게시글 삭제 (soft delete) - 삭제 시 조회 불가 */
     @DeleteMapping("/{postId}")
     public ResponseEntity<ApiResponse<Void>> deletePost(
             @AuthenticationPrincipal CustomUserDetails userDetails,
