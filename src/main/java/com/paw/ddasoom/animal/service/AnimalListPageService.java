@@ -1,28 +1,13 @@
 package com.paw.ddasoom.animal.service;
 
-import java.util.List;
+import org.springframework.data.domain.Pageable;
 
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import com.paw.ddasoom.animal.domain.Animal;
+import com.paw.ddasoom.animal.dto.request.AnimalListPageRequest;
 import com.paw.ddasoom.animal.dto.response.AnimalListPageResponse;
-import com.paw.ddasoom.animal.repository.AnimalRepository;
+import com.paw.ddasoom.common.dto.PageResponse;
 
-import lombok.RequiredArgsConstructor;
+public interface AnimalListPageService {
 
-@Service
-@RequiredArgsConstructor
-public class AnimalListPageService {
+  PageResponse<AnimalListPageResponse> search(AnimalListPageRequest request, Pageable pageable);
 
-  private final AnimalRepository animalRepository;
-
-  @Transactional(readOnly = true)
-  public List<AnimalListPageResponse> findAllAnimals() {
-    List<Animal> foundAnimals =  animalRepository.findAll();
-    List<AnimalListPageResponse> response = foundAnimals.stream()
-            .map(AnimalListPageResponse::from)
-            .toList();
-    return response;
-  } 
 }

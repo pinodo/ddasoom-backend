@@ -8,7 +8,7 @@ import lombok.Builder;
 
 @Builder
 public record AnimalListPageResponse(
-  Long id,
+  Long animalId,
   AnimalKind kind,
   String nickname,
   AnimalGender gender,
@@ -19,7 +19,7 @@ public record AnimalListPageResponse(
 ) {
   public static AnimalListPageResponse from(Animal animal) {
     return AnimalListPageResponse.builder()
-      .id(animal.getId())
+      .animalId(animal.getId())
       .kind(animal.getKind())
       .nickname(animal.getNickname())
       .gender(animal.getGender())

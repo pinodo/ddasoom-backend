@@ -9,6 +9,7 @@ public class AnimalGenderConverter implements Converter<String, AnimalGender> {
 
     @Override
     public AnimalGender convert(String value) {
+        if (value == null || value.isBlank()) return null;
         return AnimalGender.from(value);
     }
 }

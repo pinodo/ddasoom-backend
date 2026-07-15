@@ -8,6 +8,7 @@ public class AnimalKindConverter implements Converter<String, AnimalKind> {
 
     @Override
     public AnimalKind convert(String value) {
+        if (value == null || value.isBlank()) return null;
         return AnimalKind.from(value);
     }
 }

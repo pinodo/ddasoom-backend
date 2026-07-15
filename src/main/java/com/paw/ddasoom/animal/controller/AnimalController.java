@@ -2,6 +2,7 @@ package com.paw.ddasoom.animal.controller;
 
 import java.util.List;
 
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -11,16 +12,21 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.paw.ddasoom.animal.domain.Animal;
+import com.paw.ddasoom.animal.domain.AnimalGender;
+import com.paw.ddasoom.animal.domain.AnimalKind;
+import com.paw.ddasoom.animal.dto.request.AnimalListPageRequest;
 import com.paw.ddasoom.animal.dto.request.AnimalNicknameUpdateRequest;
 import com.paw.ddasoom.animal.dto.response.AnimalListPageResponse;
 import com.paw.ddasoom.animal.service.AnimalLikeService;
-import com.paw.ddasoom.animal.service.AnimalListPageService;
+import com.paw.ddasoom.animal.service.AnimalListPageServiceImpl;
 import com.paw.ddasoom.animal.service.AnimalNicknameService;
 import com.paw.ddasoom.animal.service.AnimalSyncService;
 import com.paw.ddasoom.common.dto.ApiResponse;
+import com.paw.ddasoom.common.dto.PageResponse;
 import com.paw.ddasoom.common.security.CustomUserDetails;
 
 import jakarta.validation.Valid;
@@ -36,7 +42,7 @@ public class AnimalController {
   private final AnimalNicknameService animalNicknameService;
   private final AnimalSyncService animalSyncService;
   private final AnimalLikeService animalLikeService;
-  private final AnimalListPageService animalListPageService;
+  private final AnimalListPageServiceImpl animalListPageServiceImpl;
 
   /**
    * API에서 받아온 모든 동물 정보를 DB에 저장 (관리자용/동기화용)
@@ -97,11 +103,23 @@ public class AnimalController {
    * 배너에서 유기동물 조회 클릭 시
    * @return
    */
-  @GetMapping("/")
-  public ResponseEntity<ApiResponse<List<AnimalListPageResponse>>> showAnimalList() {
-    List<AnimalListPageResponse> animals = animalListPageService.findAllAnimals();
-    return ResponseEntity.ok(ApiResponse.success(animals));
+  @GetMapping("/list")
+  public ResponseEntity<ApiResponse<PageResponse<AnimalListPageResponse>>> showAnimalList(
+    // @RequestParam의 받아올 값을 Enum값으로 설정하면, WebConfig의 converter에서 컨트롤러에서 컨트롤러 진입 전에 Enum으로 바꿔놓음
+    @RequestParam(name = "kind", required = false) AnimalKind kind, 
+    @RequestParam(name = "location", required = false) String location,
+    @RequestParam(name = "isFostered", required = false) boolean isFostered,
+    @RequestParam(name = "gender", required = false) AnimalGender gender,
+    @RequestParam(name = "page", defaultValue = "0") int page,
+    @RequestParam(name = "size", defaultValue = "10") int size
+  ) {
+    AnimalListPageRequest request = AnimalListPageRequest.builder()
+      .kind(kind)
+      .location(location)
+      .isFostered(isFostered)
+      .gender(gender)
+      .build();
+    return ResponseEntity.ok(ApiResponse.success(animalListPageServiceImpl.search(request, PageRequest.of(page, size))));
   }
-
   
 }
