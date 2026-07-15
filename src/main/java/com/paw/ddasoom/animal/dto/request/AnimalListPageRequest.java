@@ -10,5 +10,6 @@ public record AnimalListPageRequest(
   AnimalKind kind,
   String location,
   Boolean isFostered,
+  Boolean isLiked,
   AnimalGender gender
 ) {}

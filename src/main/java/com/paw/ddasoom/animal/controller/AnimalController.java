@@ -104,6 +104,7 @@ public class AnimalController {
   /**
    * 메인화면에서 유기동물 더 보기 클릭 시
    * 배너에서 유기동물 조회 클릭 시
+   * 리스트 페이지에서 토글 선택 후 검색 클릭 시 -> 필터링
    * @return
    */
   @GetMapping("/list")
@@ -112,7 +113,9 @@ public class AnimalController {
     @RequestParam(name = "kind", required = false) AnimalKind kind, 
     @RequestParam(name = "location", required = false) String location,
     @RequestParam(name = "isFostered", required = false) boolean isFostered,
+    @RequestParam(name = "isLiked", required = false) boolean isLiked,
     @RequestParam(name = "gender", required = false) AnimalGender gender,
+    @AuthenticationPrincipal(errorOnInvalidType = false) CustomUserDetails userDetails,
     @RequestParam(name = "page", defaultValue = "0") int page,
     @RequestParam(name = "size", defaultValue = "10") int size
   ) {
@@ -121,6 +124,7 @@ public class AnimalController {
       .kind(kind)
       .location(location)
       .isFostered(isFostered)
+      .isLiked(isLiked)
       .gender(gender)
       .build();
     return ResponseEntity.ok(ApiResponse.success(animalListPageServiceImpl.search(request, PageRequest.of(page, size))));

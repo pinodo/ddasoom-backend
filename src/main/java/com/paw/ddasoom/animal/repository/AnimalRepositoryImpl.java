@@ -35,8 +35,10 @@ public class AnimalRepositoryImpl implements AnimalRepositoryCustom {
         kindEq(request.kind()),
         locationEq(request.location()),
         isFosteredEq(request.isFostered()),
-        genderEq(request.gender())
+        genderEq(request.gender()),
+        isLikedEq(request.isLiked())
       )
+      .orderBy(animal.likeCount.desc())
       .offset(pageable.getOffset())
       .limit(pageable.getPageSize())
       .fetch();
@@ -48,8 +50,10 @@ public class AnimalRepositoryImpl implements AnimalRepositoryCustom {
         kindEq(request.kind()),
         locationEq(request.location()),
         isFosteredEq(request.isFostered()),
-        genderEq(request.gender())
+        genderEq(request.gender()),
+        isLikedEq(request.isLiked())
       )
+      .orderBy(animal.likeCount.desc())
       .fetchOne();
 
       return new PageImpl<>(animals, pageable, total);
@@ -57,18 +61,22 @@ public class AnimalRepositoryImpl implements AnimalRepositoryCustom {
 
   // 조건 메서드 — null 반환 시 where절에서 자동 제거
   private BooleanExpression kindEq(AnimalKind kind) {
-      return kind != null ? animal.kind.eq(kind) : null;
+    return kind != null ? animal.kind.eq(kind) : null;
   }
 
   private BooleanExpression locationEq(String location) {
-      return location != null ? animal.location.contains(location) : null;
+    return location != null ? animal.location.contains(location) : null;
   }
 
   private BooleanExpression isFosteredEq(Boolean isFostered) {
     return isFostered != null ? animal.isFostered.eq(isFostered) : null;
-}
+  }
 
   private BooleanExpression genderEq(AnimalGender gender) {
-      return gender != null ? animal.gender.eq(gender) : null;
+    return gender != null ? animal.gender.eq(gender) : null;
+  }
+
+  private BooleanExpression isLikedEq(Boolean isLiked) {
+    return isLiked ? animal.likeCount.gt(0) : null;
   }
 }

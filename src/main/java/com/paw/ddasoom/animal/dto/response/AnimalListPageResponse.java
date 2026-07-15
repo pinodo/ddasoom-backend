@@ -15,7 +15,8 @@ public record AnimalListPageResponse(
   String typeName,
   String age,
   String imageUrl,
-  boolean isFostered
+  boolean isFostered,
+  int likeCount
 ) {
   public static AnimalListPageResponse from(Animal animal) {
     return AnimalListPageResponse.builder()
@@ -27,6 +28,7 @@ public record AnimalListPageResponse(
       .age(animal.getAge())
       .imageUrl(animal.getImageUrl())
       .isFostered(animal.isFostered())
+      .likeCount(animal.getLikeCount())
       .build();
   }
 }
