@@ -58,6 +58,11 @@ public class FosterAdminService {
     if(status != null && activeOnly){
       throw new FosterException(FosterErrorCode.INVALID_FOSTER_SEARCH_CONDITION);
     }
+    // 기간 조건 오류 방지 검증(시작일이 종료일보다 늦을 경우)
+    if (startDate != null && endDate != null && startDate.isAfter(endDate)) {
+      throw new FosterException(FosterErrorCode.INVALID_FOSTER_DATE_RANGE);
+    }
+    
     
     LocalDateTime startAt = startDate != null ? startDate.atStartOfDay() : null;
     LocalDateTime endAt = endDate != null ? endDate.plusDays(1).atStartOfDay() : null;
@@ -80,17 +85,20 @@ public class FosterAdminService {
                     .orElseThrow(() -> new FosterException(FosterErrorCode.FOSTER_NOT_FOUND));
     Member reviewer = memberRepository.findById(adminId)
                     .orElseThrow(() -> new MemberException(MemberErrorCode.MEMBER_NOT_FOUND));
-
-      foster.updateAdminReview(
-        reviewer,
-        request.getAnswer(),
-        request.getStatus(),
-        request.getFosterStartAt(),
-        request.getFosterEndAt(),
-        request.getFosterExtendAt(),
-        request.getFosterCompleteAt());
     
-        syncAnimalFosterStatus(foster);
+    // 임시보호날짜 검증
+    validateFosterPeriod(request);
+
+    foster.updateAdminReview(
+      reviewer,
+      request.getAnswer(),
+      request.getStatus(),
+      request.getFosterStartAt(),
+      request.getFosterEndAt(),
+      request.getFosterExtendAt(),
+      request.getFosterCompleteAt());
+  
+    syncAnimalFosterStatus(foster);
   }
   /** 업데이트시 상태값에 따른 animal 데이터 임시보호 여부 변경 */
   private void syncAnimalFosterStatus(Foster foster){
@@ -101,5 +109,25 @@ public class FosterAdminService {
     //animal에 임시보호 값 반영
     foster.getAnimal().updateFosteredStatus(isFostered);
   }
-  
+
+  /** 업데이트시 임시보호 기간 설정에 대한 검증 메서드 (논리적으로 맞지 않는 임시보호 날짜) */
+  private void validateFosterPeriod(FosterAdminUpdateRequest request) {
+  if (request.getFosterStartAt() != null
+      && request.getFosterEndAt() != null
+      && request.getFosterStartAt().isAfter(request.getFosterEndAt())) {
+    throw new FosterException(FosterErrorCode.INVALID_FOSTER_PERIOD);
+  }
+
+  if (request.getFosterEndAt() != null
+      && request.getFosterExtendAt() != null
+      && request.getFosterEndAt().isAfter(request.getFosterExtendAt())) {
+    throw new FosterException(FosterErrorCode.INVALID_FOSTER_PERIOD);
+  }
+
+  if (request.getFosterStartAt() != null
+      && request.getFosterCompleteAt() != null
+      && request.getFosterStartAt().isAfter(request.getFosterCompleteAt())) {
+    throw new FosterException(FosterErrorCode.INVALID_FOSTER_PERIOD);
+  }
+}
 }

@@ -152,6 +152,8 @@ public class Foster extends BaseTimeEntity {
     if (this.deletedAt != null){
       throw new FosterException(FosterErrorCode.ALREADY_DELETED_FOSTER);
     }
+    // 상태 변경 불가 검증
+    validateStatusTransition(status);
 
     this.reviewer = reviewer;
     this.answer = answer;
@@ -161,5 +163,22 @@ public class Foster extends BaseTimeEntity {
     this.fosterExtendAt = fosterExtendAt;
     this.fosterCompleteAt = fosterCompleteAt;
   }
+  // 임시보호상태 변경시 서비스적으로 변경이 불가능한 상태 보호 메서드(updateAdminReview 에서 검증)
+  private void validateStatusTransition(FosterStatus nextStatus){
+    // 동일한 상태 처리
+    if (this.status == nextStatus) {
+      return;
+    }
 
+    boolean isValid = switch (this.status) {
+      case PENDING -> nextStatus == FosterStatus.FOSTERING || nextStatus == FosterStatus.REJECTED;
+      case FOSTERING -> nextStatus == FosterStatus.EXTENDED || nextStatus == FosterStatus.ENDED;
+      case EXTENDED -> nextStatus == FosterStatus.ENDED;
+      case REJECTED, ENDED -> false;
+    };
+
+    if (!isValid) {
+      throw new FosterException(FosterErrorCode.INVALID_FOSTER_STATUS_TRANSITION);
+    }
+  }
 }
