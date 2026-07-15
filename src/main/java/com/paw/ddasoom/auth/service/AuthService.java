@@ -160,6 +160,12 @@ public class AuthService {
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new AuthException(AuthErrorCode.INVALID_RESET_TOKEN));
 
+        // 재설정 링크 발급 후 탈퇴한 계정 — 발송 단계(sendPasswordResetLink)와 동일 기준으로 차단.
+        // 탈퇴 사실을 노출하지 않기 위해 전용 코드 대신 "무효 토큰"과 동일 응답으로 합친다.
+        if (member.isDeleted()) {
+        throw new AuthException(AuthErrorCode.INVALID_RESET_TOKEN);
+        }
+
         member.changePassword(passwordEncoder.encode(newPassword));
 
         redisTokenService.deleteResetToken(token);          // 일회용 — 재사용 차단

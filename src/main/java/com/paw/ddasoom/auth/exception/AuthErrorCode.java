@@ -39,7 +39,13 @@ public enum AuthErrorCode implements ErrorCode{
    /**---------------------------- 
      회원가입 관련 에러코드 
   ----------------------------- */
-   INVALID_RESET_TOKEN(HttpStatus.BAD_REQUEST, "AUTH_108", "비밀번호 재설정 링크가 만료되었거나 유효하지 않습니다.");
+   INVALID_RESET_TOKEN(HttpStatus.BAD_REQUEST, "AUTH_108", "비밀번호 재설정 링크가 만료되었거나 유효하지 않습니다."),
+
+   /**---------------------------- 
+     회원 탈퇴 관련 에러코드 
+  ----------------------------- */
+   WITHDRAWN_MEMBER(HttpStatus.FORBIDDEN, "AUTH_109",
+          "탈퇴 처리된 계정입니다. 계정 복구를 원하시면 1:1 문의를 이용해 주세요.");
 
 
     private final HttpStatus status;
