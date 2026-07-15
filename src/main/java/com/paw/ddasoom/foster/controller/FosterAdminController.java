@@ -1,6 +1,9 @@
 package com.paw.ddasoom.foster.controller;
 
+import java.time.LocalDate;
+
 import org.springframework.data.domain.PageRequest;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -41,13 +44,21 @@ public class FosterAdminController {
   @GetMapping
   public ResponseEntity<ApiResponse<PageResponse<FosterAdminListResponse>>> getFosterList(
       @RequestParam(required = false) FosterStatus status,
+      @RequestParam(defaultValue = "false") boolean activeOnly,
       @RequestParam(defaultValue = "false") boolean includeDeleted,
+      @RequestParam(required = false)
+      @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+      @RequestParam(required = false)
+      @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
       @RequestParam(defaultValue = "0") int page,
       @RequestParam(defaultValue = "20") int size
   ){
     PageResponse<FosterAdminListResponse> response = fosterAdminService.getFosterList(
       status,
+      activeOnly,
       includeDeleted,
+      startDate,
+      endDate,
       PageRequest.of(page, size));
 
     return ResponseEntity.ok(ApiResponse.success(response));

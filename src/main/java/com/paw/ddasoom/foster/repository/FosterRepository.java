@@ -1,5 +1,6 @@
 package com.paw.ddasoom.foster.repository;
 
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.Optional;
 
@@ -17,7 +18,7 @@ public interface FosterRepository extends JpaRepository<Foster, Long> {
   /** 유저 수정 조회(유저 본인 + fosterId 조회)*/
   Optional<Foster> findByFosterIdAndUser_IdAndDeletedAtIsNull(Long fosterId, Long userId);
   
-  /** 유저 리스트 조회( 유저ID.상태값 필터링, 삭제 미포함, 신청일 정렬 )
+  /** 유저 리스트 조회( 유저ID/상태값 필터링, 삭제 미포함, 신청일 정렬)
    * ex)
    * status = null //전체 조회
    * status = 'PENDING' //PENDING만 조회
@@ -36,23 +37,37 @@ public interface FosterRepository extends JpaRepository<Foster, Long> {
     Pageable pageable
   );
 
-  /** 관리자 리스트 조회( 상태값.삭제 필터링, 신청일 정렬)
+  /** 관리자 리스트 조회(상태값/임시보호중/삭제/기간 필터링, 신청일 정렬)
    * ex)
    * status = null //전체 조회
    * status = 'PENDING' //PENDING만 조회
+   * activeOnly = true // FOSTERING + EXTENDED만 조회(임시보호중인 상태 모음)
    * includeDeleted = true //softDelete 포함 조회
    * includeDeleted = false //softDelete 미포함 조회
+   * startAt/endAt // createdAt 기간 조회
+   * 
+   * 주의)
+   * status와 activeOnly=true를 동시에 보내면 조건이 둘 다 적용.
+   * 프론트에서 둘을 동시에 보내지 않게 하거나 서비스에서 막는 게 좋습니다. 
    */
   @Query("""
       select f
       from Foster f
       where (:status is null or f.status = :status)
+      and (:activeOnly = false or f.status in (
+      com.paw.ddasoom.foster.domain.FosterStatus.FOSTERING,
+      com.paw.ddasoom.foster.domain.FosterStatus.EXTENDED))
       and (:includeDeleted = true or f.deletedAt is null)
+      and (:startAt is null or f.createdAt >= :startAt)
+      and (:endAt is null or f.createdAt < :endAt)
       order by f.createdAt desc
       """)
     Page<Foster> findAllForAdmin(
       @Param("status") FosterStatus status,
+      @Param("activeOnly") boolean activeOnly ,
       @Param("includeDeleted") boolean includeDeleted,
+      @Param("startAt") LocalDateTime startAt,
+      @Param("endAt") LocalDateTime endAt,
       Pageable pageable
     );
 

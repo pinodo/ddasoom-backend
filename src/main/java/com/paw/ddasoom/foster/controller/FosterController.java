@@ -62,12 +62,14 @@ public class FosterController {
   /** 유저 임시보호신청 조회(리스트) */
   @GetMapping("/my")
   public ResponseEntity<ApiResponse<PageResponse<FosterUserListResponse>>> getFosterList(
-      @AuthenticationPrincipal CustomUserDetails userDetails,
+      //@AuthenticationPrincipal CustomUserDetails userDetails,
+      @RequestParam Long memberId,
       @RequestParam(required = false) FosterStatus status,
       @RequestParam(defaultValue = "0") int page,
       @RequestParam(defaultValue = "20") int size) {
     PageResponse<FosterUserListResponse> response = fosterService.getFosterList(
-      userDetails.getMemberId(),
+      //userDetails.getMemberId(),
+      memberId,
       status,
       PageRequest.of(page, size));
 

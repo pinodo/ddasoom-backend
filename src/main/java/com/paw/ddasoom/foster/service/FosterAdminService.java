@@ -1,12 +1,13 @@
 package com.paw.ddasoom.foster.service;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.PathVariable;
 
 import com.paw.ddasoom.common.dto.PageResponse;
 import com.paw.ddasoom.foster.domain.Foster;
@@ -48,9 +49,26 @@ public class FosterAdminService {
   @Transactional(readOnly = true)
   public PageResponse<FosterAdminListResponse> getFosterList(
     FosterStatus status,
+    boolean activeOnly,
     boolean includeDeleted,
+    LocalDate startDate,
+    LocalDate endDate,
     Pageable pageable){
-    Page<Foster> fosterList = fosterRepository.findAllForAdmin(status, includeDeleted, pageable);
+    // 선택 조회와 함께 동시 조회시 충돌 방지 검증
+    if(status != null && activeOnly){
+      throw new FosterException(FosterErrorCode.INVALID_FOSTER_SEARCH_CONDITION);
+    }
+    
+    LocalDateTime startAt = startDate != null ? startDate.atStartOfDay() : null;
+    LocalDateTime endAt = endDate != null ? endDate.plusDays(1).atStartOfDay() : null;
+
+    Page<Foster> fosterList = fosterRepository.findAllForAdmin(
+      status,
+      activeOnly,
+      includeDeleted,
+      startAt,
+      endAt,
+      pageable);
 
     return PageResponse.of(fosterList, FosterAdminListResponse::from);
   }
