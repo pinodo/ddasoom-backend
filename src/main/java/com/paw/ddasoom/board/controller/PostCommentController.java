@@ -21,6 +21,7 @@ public class PostCommentController {
 
     private final PostCommentService postCommentService;
 
+    /** 댓글 생성용 */
     @PostMapping
     public ResponseEntity<ApiResponse<CommentResponse>> createComment(
             @PathVariable Long postId,
@@ -32,6 +33,7 @@ public class PostCommentController {
                 .body(ApiResponse.success("댓글이 작성되었습니다.", response));
     }
 
+    /** 댓글 조회용 - 20개 기준 */
     @GetMapping
     public ResponseEntity<ApiResponse<PageResponse<CommentResponse>>> getComments(
             @PathVariable Long postId,
@@ -42,6 +44,7 @@ public class PostCommentController {
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
+    /** 댓글 수정용 */
     @PatchMapping("/{commentId}")
     public ResponseEntity<ApiResponse<CommentResponse>> updateComment(
             @PathVariable Long postId,
@@ -53,6 +56,7 @@ public class PostCommentController {
         return ResponseEntity.ok(ApiResponse.success("댓글이 수정되었습니다.", response));
     }
 
+    /** 댓글 삭제용 */
     @DeleteMapping("/{commentId}")
     public ResponseEntity<ApiResponse<Void>> deleteComment(
             @PathVariable Long postId,
