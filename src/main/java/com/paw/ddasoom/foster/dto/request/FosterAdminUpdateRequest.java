@@ -24,5 +24,4 @@ public class FosterAdminUpdateRequest {
   private LocalDateTime fosterExtendAt;
   private LocalDateTime fosterCompleteAt;
   
-
 }

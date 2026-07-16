@@ -26,6 +26,7 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -90,12 +91,14 @@ public class Foster extends BaseTimeEntity {
   @Column(columnDefinition = "DATETIME(6)")
   private LocalDateTime deletedAt;
   // 임시보호신청 엔티티 초기화 - UUID 발급 및 기본 상태(PENDING) 설정
+  @Builder
   private Foster(
       Animal animal,
       Member user,
       String age,
       String job,
-      String message) {
+      String message
+    ) {
     this.animal = animal;
     this.user = user;
     this.fosterNum = UUID.randomUUID();
@@ -103,21 +106,8 @@ public class Foster extends BaseTimeEntity {
     this.job = job;
     this.message = message;
     this.status = FosterStatus.PENDING;
-  }
-  // 리치도메인 메서드 -> 임시보호 신청 생성 요청 (신청자/동물/신청 정보로 Foster 엔티티 생성)
-  public static Foster create(
-      Animal animal,
-      Member user,
-      String age,
-      String job,
-      String message) {
-    return new Foster(
-        animal,
-        user,
-        age,
-        job,
-        message);
-  }
+}
+
   // 리치도메인 메서드 -> 임시보호신청 soft delete 처리(deletedAt 기준 삭제)
   public void softDelete() {
     if(this.deletedAt != null){
@@ -139,7 +129,7 @@ public class Foster extends BaseTimeEntity {
     this.message = message;
   }
 
-  // 리치도메인 메서드 -> 관리자 신청 처리 정보 수정 (검토자/답변/상태/임시보호 일정 변경)
+  // 관리자 신청 처리 정보 수정 (검토자/답변/상태/임시보호 일정 변경)
   public void updateAdminReview(
     Member reviewer,
     String answer,
@@ -154,7 +144,6 @@ public class Foster extends BaseTimeEntity {
     }
     // 상태 변경 불가 검증
     validateStatusTransition(status);
-
     this.reviewer = reviewer;
     this.answer = answer;
     this.status = status;
@@ -163,7 +152,8 @@ public class Foster extends BaseTimeEntity {
     this.fosterExtendAt = fosterExtendAt;
     this.fosterCompleteAt = fosterCompleteAt;
   }
-  // 리치도메인 -> 임시보호상태 변경시 서비스적으로 변경이 불가능한 상태 보호 메서드(updateAdminReview 에서 검증)
+
+  // 관리자 상태 변경 시 허용되지 않은 상태 전이를 방지하는 검증 메서드
   private void validateStatusTransition(FosterStatus nextStatus){
     // 업데이트시 동일한 상태일시 처리 (PENDING == PENDING)
     if (this.status == nextStatus) {

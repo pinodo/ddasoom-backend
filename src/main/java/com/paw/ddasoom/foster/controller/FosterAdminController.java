@@ -31,6 +31,8 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping("/api/admin/fosters")
 public class FosterAdminController {
 
+  private final FosterAdminService fosterAdminService;
+  
   /** 관리자 임시보호신청 조회(디테일) */
   @GetMapping("/{fosterId}")
   public ResponseEntity<ApiResponse<FosterAdminDetailResponse>> getFosterDetail(

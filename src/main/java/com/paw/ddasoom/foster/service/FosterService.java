@@ -20,9 +20,7 @@ import com.paw.ddasoom.foster.exception.FosterErrorCode;
 import com.paw.ddasoom.foster.exception.FosterException;
 import com.paw.ddasoom.foster.repository.FosterRepository;
 import com.paw.ddasoom.member.domain.Member;
-import com.paw.ddasoom.member.exception.MemberErrorCode;
-import com.paw.ddasoom.member.exception.MemberException;
-import com.paw.ddasoom.member.repository.MemberRepository;
+import com.paw.ddasoom.member.service.MemberService;
 
 import lombok.RequiredArgsConstructor;
 
@@ -32,7 +30,7 @@ public class FosterService {
 
         private final FosterRepository fosterRepository;
         private final AnimalRepository animalRepository;
-        private final MemberRepository memberRepository;
+        private final MemberService memberService;
 
         /** 유저 글 작성 */
         @Transactional
@@ -40,23 +38,28 @@ public class FosterService {
 
                 Animal animal = animalRepository.findById(request.getAnimalId())
                                 .orElseThrow(() -> new AnimalException(AnimalErrorCode.ANIMAL_NOT_FOUND));
+                
+                validateAnimalAvailableForFoster(animal);
 
-                Member user = memberRepository.findById(memberId)
-                                .orElseThrow(() -> new MemberException(MemberErrorCode.MEMBER_NOT_FOUND));
+                Member user = memberService.getMember(memberId);
                 
                 // 동일 유저 동일 동물 중복신청 검증
                 validateDuplicateApplication(memberId, request.getAnimalId());
 
-                Foster foster = Foster.create(
-                                animal,
-                                user,
-                                request.getAge(),
-                                request.getJob(),
-                                request.getMessage());
-
+                Foster foster = request.toEntity(animal, user);
+                
                 fosterRepository.save(foster);
 
         }
+
+        /** 임시보호 상태(isFostered)인 동물 신청을 막는 검증 메서드  */
+        private void validateAnimalAvailableForFoster(Animal animal){
+                if(animal.isFostered()){
+                   throw new FosterException(FosterErrorCode.ALREADY_FOSTERED_ANIMAL);   
+                }
+        }
+
+        /**동일 유저의 중복 신청을 막는 검증 메서드 */
         private void validateDuplicateApplication(Long memberId, Long animalId){
                 boolean existsActiveApplication = fosterRepository
                         .existsByUser_IdAndAnimal_IdAndDeletedAtIsNullAndStatusNot(

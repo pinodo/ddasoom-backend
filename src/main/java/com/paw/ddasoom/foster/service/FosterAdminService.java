@@ -19,9 +19,7 @@ import com.paw.ddasoom.foster.exception.FosterErrorCode;
 import com.paw.ddasoom.foster.exception.FosterException;
 import com.paw.ddasoom.foster.repository.FosterRepository;
 import com.paw.ddasoom.member.domain.Member;
-import com.paw.ddasoom.member.exception.MemberErrorCode;
-import com.paw.ddasoom.member.exception.MemberException;
-import com.paw.ddasoom.member.repository.MemberRepository;
+import com.paw.ddasoom.member.service.MemberService;
 
 import lombok.RequiredArgsConstructor;
 
@@ -30,7 +28,8 @@ import lombok.RequiredArgsConstructor;
 public class FosterAdminService {
 
   private final FosterRepository fosterRepository;
-  private final MemberRepository memberRepository;
+  private final MemberService memberService;
+
   /** 임시보호가 진행 중인 상태를 판단하는 목록 */
   private static final List<FosterStatus> ACTIVE_FOSTER_STATUSES = List.of(
     FosterStatus.FOSTERING, // 임시보호중
@@ -80,15 +79,14 @@ public class FosterAdminService {
 
   /** 관리자 임시보호신청 수정 */
   @Transactional
-  public void updateFoster(Long adminId, Long fosterId, FosterAdminUpdateRequest request){
+  public void updateFoster(Long memberId, Long fosterId, FosterAdminUpdateRequest request){
     Foster foster = fosterRepository.findById(fosterId)
                     .orElseThrow(() -> new FosterException(FosterErrorCode.FOSTER_NOT_FOUND));
-    Member reviewer = memberRepository.findById(adminId)
-                    .orElseThrow(() -> new MemberException(MemberErrorCode.MEMBER_NOT_FOUND));
+    Member reviewer = memberService.getMember(memberId);
     
     // 임시보호날짜 검증
     validateFosterPeriod(request);
-
+    
     foster.updateAdminReview(
       reviewer,
       request.getAnswer(),
@@ -100,6 +98,7 @@ public class FosterAdminService {
   
     syncAnimalFosterStatus(foster);
   }
+  
   /** 관리자 수정 후 상태값에 따른 animal 데이터 임시보호 여부 변경 */
   private void syncAnimalFosterStatus(Foster foster){
     // 현재 animalId를 가져와 임시보호중인지 연장중인지 확인
