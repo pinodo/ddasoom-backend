@@ -8,6 +8,7 @@ import com.paw.ddasoom.common.dto.PageResponse;
 
 public interface AnimalListPageService {
 
-  PageResponse<AnimalListPageResponse> search(AnimalListPageRequest request, Pageable pageable);
+  // memberId: isLiked 필드/필터 계산용 회원 PK. 비로그인이면 null.
+  PageResponse<AnimalListPageResponse> search(AnimalListPageRequest request, Long memberId, Pageable pageable);
 
 }
