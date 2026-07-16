@@ -32,7 +32,7 @@ public class FosterService {
         private final AnimalRepository animalRepository;
         private final MemberService memberService;
 
-        /** 유저 글 작성 */
+        /** 유저 임시보호 신청 생성 */
         @Transactional
         public void create(Long memberId, FosterCreateRequest request) {
 

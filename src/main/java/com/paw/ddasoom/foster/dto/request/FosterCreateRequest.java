@@ -40,5 +40,5 @@ public class FosterCreateRequest {
         .job(job)
         .message(message)
         .build();
-}
+  }
 }

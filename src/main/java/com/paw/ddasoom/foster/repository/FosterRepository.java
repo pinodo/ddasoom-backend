@@ -54,7 +54,7 @@ public interface FosterRepository extends JpaRepository<Foster, Long> {
    * startAt/endAt // createdAt 기간 조회
    * 
    * 참고)
-   * status와 activeOnly=true를 동시에 보내면 둘다 적용
+   * status와 activeOnly=true를 동시에 보내면 둘다 적용 가능성이 있기에
    * 서비스에서 INVALID_FOSTER_SEARCH_CONDITION 예외 처리
    */
   @Query("""
