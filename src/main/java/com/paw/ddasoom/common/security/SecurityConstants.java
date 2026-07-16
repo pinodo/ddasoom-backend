@@ -17,12 +17,10 @@ public class SecurityConstants {
       "/api/notices/*",     // 공지사항 상세 조회 (비로그인 허용)
       "/api/faqs",          // FAQ 전체 목록 조회
       "/api/faqs/*",         // FAQ 상세 목록 조회
-      // ── auth (Animal API ─ 종식) ──
-      "/api/animals/list",            // 전체 동물 목록
-      "/api/{animalId}/nickname",     // 유기동물 닉네임 수정
-      "/api/animals/sync",            // 유기동물 DB에 저장
-      "/api/{animalId}/nickname",     // 유기동물 닉네임 수정 (테스트용)
-      "/api/animals/sync",            // 유기동물 DB에 저장 (테스트용)
-      "/api/animals/**",               // 좋아요, 좋아요 취소, 좋아요 수 업데이트 (테스트용)
+      // ── Animal API (종식) ──
+      // 목록/상세만 공개. likes(POST/DELETE)·nickname(PATCH)·me/likes(GET)는 더 깊은 경로라
+      // 여기서 매칭되지 않아 인증 필수로 잠긴다. sync는 /api/admin/animals/sync로 이동해 ADMIN 자동 잠금.
+      "/api/animals/list",            // 목록 조회 (공개)
+      "/api/animals/*",               // 상세 조회 GET (공개) — 한 세그먼트만 매칭
   };
 }

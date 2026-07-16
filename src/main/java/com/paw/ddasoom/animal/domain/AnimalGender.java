@@ -14,4 +14,13 @@ public enum AnimalGender {
       default -> throw new AnimalException(AnimalErrorCode.ANIMAL_ENUM_VALUE_NOT_FOUND);
     };
   }
+
+  // 쿼리 파라미터 코드(M/F/Q = enum 이름) → enum. 목록 검색 필터 컨버터 전용.
+  public static AnimalGender fromCode(String code) {
+    try {
+      return AnimalGender.valueOf(code.trim().toUpperCase());
+    } catch (IllegalArgumentException e) {
+      throw new AnimalException(AnimalErrorCode.ANIMAL_ENUM_VALUE_NOT_FOUND);
+    }
+  }
 }
