@@ -6,6 +6,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import com.paw.ddasoom.animal.domain.Animal;
 
-public interface AnimalRepository extends JpaRepository<Animal, Long> {
+public interface AnimalRepository extends JpaRepository<Animal, Long>, AnimalRepositoryCustom {
   Optional<Animal> findByAbandonmentId(String abandonmentId);
 }
