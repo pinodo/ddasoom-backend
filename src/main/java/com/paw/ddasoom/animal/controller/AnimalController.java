@@ -23,12 +23,9 @@ import com.paw.ddasoom.animal.dto.response.AnimalDetailPageResponse;
 import com.paw.ddasoom.animal.dto.response.AnimalListPageResponse;
 import com.paw.ddasoom.animal.dto.response.AnimalMainPageResponse;
 import com.paw.ddasoom.animal.dto.response.AnimalMyPageResponse;
-import com.paw.ddasoom.animal.service.AnimalDetailService;
 import com.paw.ddasoom.animal.service.AnimalLikeService;
-import com.paw.ddasoom.animal.service.AnimalListPageService;
-import com.paw.ddasoom.animal.service.AnimalMainPageService;
-import com.paw.ddasoom.animal.service.AnimalMyPageService;
 import com.paw.ddasoom.animal.service.AnimalNicknameService;
+import com.paw.ddasoom.animal.service.AnimalQueryService;
 import com.paw.ddasoom.common.dto.ApiResponse;
 import com.paw.ddasoom.common.dto.PageResponse;
 import com.paw.ddasoom.common.security.CustomUserDetails;
@@ -44,11 +41,8 @@ import lombok.extern.slf4j.Slf4j;
 public class AnimalController {
 
   private final AnimalNicknameService animalNicknameService;
-  private final AnimalLikeService animalLikeService; // 좋아요 서비스 (공부해야함)
-  private final AnimalListPageService animalListPageService;
-  private final AnimalDetailService animalDetailService; // 상세페이지 서비스 (공부해야함)
-  private final AnimalMyPageService animalMyPageService; // 마이페이지 서비스 (공부해야함)
-  private final AnimalMainPageService animalMainPageService; // 메인페이지 서비스 (공부해야함)
+  private final AnimalLikeService animalLikeService;
+  private final AnimalQueryService animalQueryService;
 
   /**
    * 닉네임 이름 수정 요청 시, 변경된 닉네임 저장 (임보 보호자용)
@@ -110,7 +104,7 @@ public class AnimalController {
       .gender(gender)
       .build();
     return ResponseEntity.ok(ApiResponse.success(
-        animalListPageService.search(request, memberId, PageRequest.of(page, size))));
+      animalQueryService.search(request, memberId, PageRequest.of(page, size))));
   }
 
   /**
@@ -118,7 +112,7 @@ public class AnimalController {
    */
   @GetMapping("/main")
   public ResponseEntity<ApiResponse<List<AnimalMainPageResponse>>> getMainPreview() {
-    return ResponseEntity.ok(ApiResponse.success(animalMainPageService.getMainPreview()));
+    return ResponseEntity.ok(ApiResponse.success(animalQueryService.getMainPreview()));
   }
 
   /**
@@ -131,7 +125,7 @@ public class AnimalController {
   ) {
     Long memberId = userDetails != null ? userDetails.getMemberId() : null;
     return ResponseEntity.ok(ApiResponse.success(
-        animalDetailService.getDetail(animalId, memberId)));
+      animalQueryService.getDetail(animalId, memberId)));
   }
 
   /**
@@ -144,6 +138,6 @@ public class AnimalController {
     @RequestParam(name = "size", defaultValue = "10") int size
   ) {
     return ResponseEntity.ok(ApiResponse.success(
-        animalMyPageService.getMyLikedAnimals(userDetails.getMemberId(), PageRequest.of(page, size))));
+      animalQueryService.getMyLikedAnimals(userDetails.getMemberId(), PageRequest.of(page, size))));
   }
 }
