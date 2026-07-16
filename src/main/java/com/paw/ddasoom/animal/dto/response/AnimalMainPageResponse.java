@@ -4,21 +4,22 @@ import com.paw.ddasoom.animal.domain.Animal;
 import com.paw.ddasoom.animal.domain.AnimalGender;
 import com.paw.ddasoom.animal.domain.AnimalKind;
 
+// DTO 확인용
 public record AnimalMainPageResponse(
   Long id,
   String abandonmentId,
-  AnimalKind kind, // 상위 품종 분류 (개/고양이 등)
+  AnimalKind kind,
   String nickname,
   AnimalGender gender,
-  String typeName, // 품종 이름
-  String age, // 출생 연도 (예: 2026(년도))
+  String typeName,
+  String age,
   String location,
-  String weight, // 몸무게 (kg)
+  String weight,
   String color,
   String specialMark,
   String vaccinationChk,
   String imageUrl,
-  long likeCount // 캐시 컬럼 - animal_like 기준 동기화
+  long likeCount
 ) {
   public static AnimalMainPageResponse from(Animal animal) {
     return new AnimalMainPageResponse(
