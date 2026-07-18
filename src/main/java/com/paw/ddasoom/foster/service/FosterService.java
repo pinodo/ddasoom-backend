@@ -72,7 +72,7 @@ public class FosterService {
                 }
         }
 
-        /** 유저 글 수정 */
+        /** 유저 임시보호신청 수정 */
         @Transactional
         public void update(Long memberId, Long fosterId, FosterUpdateRequest request) {
                 Foster foster = fosterRepository.findByFosterIdAndUser_IdAndDeletedAtIsNull(fosterId, memberId)
