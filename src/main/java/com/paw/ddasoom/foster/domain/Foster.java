@@ -130,7 +130,7 @@ public class Foster extends BaseTimeEntity {
     this.job = job;
     this.message = message;
   }
-  // 수정 및 삭제시 PENDING,REJECTED 상태를 검증하는 메서드
+  // 수정 및 삭제시 PENDING,REJECTED 상태 체크 검증 메서드
   private void validateUserModifiableStatus(FosterErrorCode errorCode) {
     boolean isModifiable =
         this.status == FosterStatus.PENDING ||
@@ -139,6 +139,14 @@ public class Foster extends BaseTimeEntity {
     if (!isModifiable) {
       throw new FosterException(errorCode);
     }
+  }
+  // 관리자 임시보호요청 삭제 
+  public void softDeleteByAdmin() {
+    if (this.deletedAt != null) {
+      throw new FosterException(FosterErrorCode.ALREADY_DELETED_FOSTER);
+    }
+
+    this.deletedAt = LocalDateTime.now();
   }
 
   // 관리자 신청 처리 정보 수정 (검토자/답변/상태/임시보호 일정 변경)

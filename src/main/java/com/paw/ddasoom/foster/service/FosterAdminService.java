@@ -129,4 +129,14 @@ public class FosterAdminService {
     throw new FosterException(FosterErrorCode.INVALID_FOSTER_PERIOD);
   }
 }
+  /**관리자 임시보호요청 삭제 (삭제 뒤 isFostered 재계산)*/
+  @Transactional
+  public void deleteFoster(Long fosterId) {
+    Foster foster = fosterRepository.findById(fosterId)
+        .orElseThrow(() -> new FosterException(FosterErrorCode.FOSTER_NOT_FOUND));
+
+    foster.softDeleteByAdmin();
+
+    syncAnimalFosterStatus(foster);
+  }
 }
