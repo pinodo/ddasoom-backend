@@ -21,15 +21,15 @@ import lombok.RequiredArgsConstructor;
 
 @Repository
 @RequiredArgsConstructor
-public class AnimalRepositoryImpl implements AnimalRepositoryCustom {
+public class AnimalQueryRepository {
 
   private final JPAQueryFactory queryFactory;
 
   private static final QAnimal animal = QAnimal.animal;
   private static final QAnimalLike animalLike = QAnimalLike.animalLike;
 
-  @Override
   public Page<Animal> search(AnimalListPageRequest request, Long memberId, Pageable pageable) {
+    // memberId: "내가 좋아요한 동물만" 필터(isLiked=true)를 적용하기 위한 회원 PK. 비로그인이면 null.
     
     // WHERE 조건 — null 반환 메서드는 where절에서 자동 제거됨
     BooleanExpression[] conditions = {
@@ -43,7 +43,7 @@ public class AnimalRepositoryImpl implements AnimalRepositoryCustom {
     List<Animal> animals = queryFactory
       .selectFrom(animal)
       .where(conditions)
-      .orderBy(animal.likeCount.desc())
+      .orderBy(animal.likeCount.desc(), animal.id.desc())
       .offset(pageable.getOffset())
       .limit(pageable.getPageSize())
       .fetch();

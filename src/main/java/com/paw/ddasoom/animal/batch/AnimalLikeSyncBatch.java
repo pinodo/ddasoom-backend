@@ -6,12 +6,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
-import com.paw.ddasoom.animal.exception.AnimalException;
 import com.paw.ddasoom.animal.repository.AnimalLikeJdbcRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -35,6 +37,11 @@ public class AnimalLikeSyncBatch {
   @Scheduled(fixedDelay = 10_000) // 10초 간격 갱신
   @Transactional   // insert+delete+count 갱신을 한 트랜잭션으로
   public void flush() {
+
+    // 스냅샷 삭제를 DB 커밋 후에 실행하게 설정.
+    TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+      @Override public void afterCommit() { redisTemplate.delete(SNAPSHOT_KEY); }
+    });
 
     // 이전 실행이 실패로 남긴 스냅샷이 있으면 그것부터, 없으면 현재 dirty를 원자적으로 스왑
     if (Boolean.FALSE.equals(redisTemplate.hasKey(SNAPSHOT_KEY))) { // 현재 스냅샷 키가 없으면
@@ -62,7 +69,7 @@ public class AnimalLikeSyncBatch {
     try {
       doFlush(toInsert, toDelete, affectedAnimalIds);
       redisTemplate.delete(SNAPSHOT_KEY);   // DB 반영 성공 후에만 스냅샷 통째 삭제
-    } catch (AnimalException e) {
+    } catch (DataAccessException e) {
       log.error("좋아요 배치 반영 실패, 다음 주기에 재시도합니다.", e);
     }
 
