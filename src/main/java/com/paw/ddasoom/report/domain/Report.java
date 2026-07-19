@@ -28,17 +28,12 @@ import lombok.NoArgsConstructor;
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Table(name = "report",
-  uniqueConstraints = @UniqueConstraint(
-    name = "uk_report_reporter_target",
-    columnNames = {"reporter_id", "target_type", "target_id"}
-  ),
-  indexes = {
-    @Index(name = "idx_report_target", columnList = "target_type, target_id"),
-    @Index(name = "idx_report_status_created", columnList = "status, deleted_at, created_at")
-  }
-)
-public class Report extends BaseTimeEntity{
+@Table(name = "report", uniqueConstraints = @UniqueConstraint(name = "uk_report_reporter_target", columnNames = {
+    "reporter_id", "target_type", "target_id" }), indexes = {
+        @Index(name = "idx_report_target", columnList = "target_type, target_id"),
+        @Index(name = "idx_report_status_created", columnList = "status, deleted_at, created_at")
+    })
+public class Report extends BaseTimeEntity {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -77,7 +72,6 @@ public class Report extends BaseTimeEntity{
   @Column(name = "deleted_at", columnDefinition = "DATETIME(6)")
   private LocalDateTime deletedAt;
 
-
   @Builder
   private Report(Member reporter, ReportTargetType targetType, Long targetId, ReportReason reason, String content) {
     this.reporter = reporter;
@@ -97,7 +91,7 @@ public class Report extends BaseTimeEntity{
     validatePending();
     this.status = ReportStatus.REJECTED;
     markProcessed(admin);
-    }
+  }
 
   private void validatePending() {
     if (this.status != ReportStatus.PENDING) {
@@ -110,7 +104,4 @@ public class Report extends BaseTimeEntity{
     this.processedAt = LocalDateTime.now();
   }
 
-  
-
-  
 }

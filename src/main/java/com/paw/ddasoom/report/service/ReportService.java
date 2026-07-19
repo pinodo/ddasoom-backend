@@ -82,14 +82,14 @@ public class ReportService {
       return ReportDetailResponse.from(report, targetReportCount);
     }
 
-    // @Transactional
-    // public void approveReport(Long adminId, Long reportId) {
-    //   Report report = getActiveReport(reportId);
-    //   Member admin = memberRepository.getReferenceById(adminId);
-    //   report.approve(admin);
-    //   hideTarget(report);   
-    //   em.flush();
-    // }
+    @Transactional
+    public void approveReport(Long adminId, Long reportId) {
+      Report report = getActiveReport(reportId);
+      Member admin = memberRepository.getReferenceById(adminId);
+      report.approve(admin);
+      hideTarget(report);   
+      em.flush();
+    }
 
     @Transactional
     public void rejectReport(Long adminId, Long reportId) {
@@ -127,13 +127,38 @@ public class ReportService {
     //   }
     // }
 
-    // 이미 탈퇴한 회원
-    private void hideMember(Long targetmemberId) {
-      Member target = memberRepository.findById(targetmemberId)
-          .orElseThrow(() -> new MemberException(MemberErrorCode.MEMBER_NOT_FOUND));
-      if (target.isDeleted()) {
-        return;
-      }
-      adminMemberService.forceWithdraw(targetmemberId);
+    // // 이미 탈퇴한 회원
+    // private void hideMember(Long targetmemberId) {
+    //   Member target = memberRepository.findById(targetmemberId)
+    //       .orElseThrow(() -> new MemberException(MemberErrorCode.MEMBER_NOT_FOUND));
+    //   if (target.isDeleted()) {
+    //     return;
+    //   }
+    //   adminMemberService.forceWithdraw(targetmemberId);
+    // }
+
+    /**
+     * 승인 = 대상 숨김. 각 대상 도메인의 기존 삭제/탈퇴 경로를 재사용한다.
+     * MEMBER는 forceWithdraw 내부에서 RT 삭제 + forceLogout 마커까지 자동 처리됨.
+     */
+    private void hideTarget(Report report) {
+        switch (report.getTargetType()) {
+            case POST -> { /* TODO: 창호님 forceDeletePost 머지 후 연결 */ }
+            case POST_COMMENT -> { /* TODO: 창호님 forceDeleteComment 머지 후 연결 */ }
+            case MEMBER -> hideMember(report.getTargetId());
+        }
+    }
+
+    /**
+     * 이미 탈퇴한 회원이면 no-op — Member.softDelete()가 MEMBER_003을 던지므로
+     * 같은 회원 대상 신고 2건 순차 승인 시 두 번째 승인이 터지는 것을 방지.
+     */
+    private void hideMember(Long targetMemberId) {
+        Member target = memberRepository.findById(targetMemberId)
+                .orElseThrow(() -> new MemberException(MemberErrorCode.MEMBER_NOT_FOUND));
+        if (target.isDeleted()) {
+            return;
+        }
+        adminMemberService.forceWithdraw(targetMemberId);
     }
 }
