@@ -16,7 +16,7 @@ import com.paw.ddasoom.foster.domain.FosterStatus;
 public interface FosterRepository extends JpaRepository<Foster, Long> {
 
   /** 유저 수정 조회(유저 본인 + fosterId 조회)*/
-  Optional<Foster> findByFosterIdAndUser_IdAndDeletedAtIsNull(Long fosterId, Long userId);
+  Optional<Foster> findByIdAndUser_IdAndDeletedAtIsNull(Long id, Long userId);
   
   /** 유저 리스트 조회( 유저ID/상태값 필터링, 삭제 미포함, 신청일 정렬)
    * ex)
@@ -38,10 +38,10 @@ public interface FosterRepository extends JpaRepository<Foster, Long> {
   );
 
   /** 같은 유저가 같은 동물에 대해 삭제되지 않고, 거절 상태가 아닌 신청이 있는지 확인 */
-  boolean existsByUser_IdAndAnimal_IdAndDeletedAtIsNullAndStatusNot(
+  boolean existsByUser_IdAndAnimal_IdAndDeletedAtIsNullAndStatusIn(
     Long userId,
     Long animalId,
-    FosterStatus status
+    Collection<FosterStatus> statuses
   );
 
    /** 관리자 리스트 조회(상태값/임시보호중/삭제/기간 필터링, 신청일 정렬)
