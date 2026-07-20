@@ -37,7 +37,7 @@ public interface FosterRepository extends JpaRepository<Foster, Long> {
     Pageable pageable
   );
 
-  /** 같은 유저가 같은 동물에 대해 삭제되지 않고, 거절 상태가 아닌 신청이 있는지 확인 */
+  /** 같은 유저가 같은 동물에 대해 삭제되지 않은 진행 중 신청이 있는지 확인 */
   boolean existsByUser_IdAndAnimal_IdAndDeletedAtIsNullAndStatusIn(
     Long userId,
     Long animalId,
