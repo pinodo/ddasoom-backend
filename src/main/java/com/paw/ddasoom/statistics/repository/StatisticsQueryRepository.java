@@ -127,7 +127,6 @@ public class StatisticsQueryRepository {
         return em.createNativeQuery("""
                 SELECT SUBSTRING_INDEX(location, ' ', 1) AS sido, COUNT(*) AS cnt
                 FROM animal
-                WHERE deleted_at IS NULL
                 GROUP BY sido
                 ORDER BY cnt DESC
                 """).getResultList();
