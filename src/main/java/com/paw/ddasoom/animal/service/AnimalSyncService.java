@@ -23,7 +23,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-@Transactional(readOnly = true)
+@Transactional
 public class AnimalSyncService {
 
   private final AnimalRepository animalRepository;
@@ -53,7 +53,6 @@ public class AnimalSyncService {
   /**
    * abandonmentId 기준으로 이미 존재하면 업데이트, 없으면 신규 생성
    */
-  @Transactional
   private Animal upsert(AnimalFetchResponse.AnimalItem item) {
     return animalRepository.findByAbandonmentId(item.abandonmentId())
         .map(existing -> {
