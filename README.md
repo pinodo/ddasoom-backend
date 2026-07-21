@@ -55,22 +55,22 @@ docker run -d -p 9000:9000 -p 9001:9001 --name ddasoom-minio \
 
 시크릿은 `application.yml`에 직접 쓰지 않고 **환경변수(`DDASOOM_*`)로 주입**합니다. yml에는 `${DDASOOM_...}` 플레이스홀더만 존재하며, 미등록 시 **기동 시점에 실패(fail-fast)** 합니다.
 
-필요 환경변수 10종 (예시):
+시크릿 환경변수 10종 (yml의 ${DDASOOM_*} 플레이스홀더 — 미등록 시 기동 실패):
 
-```
-DDASOOM_JWT_SECRET               # JWT 서명 시크릿 (BASE64)
-DDASOOM_JWT_ACCESS_VALIDITY      # AT 유효기간(ms)
-DDASOOM_JWT_REFRESH_VALIDITY     # RT 유효기간(ms)
-DDASOOM_MAIL_USERNAME            # SMTP 발신 계정
-DDASOOM_MAIL_PASSWORD            # SMTP 앱 비밀번호
-DDASOOM_CORS_ALLOWED_ORIGINS     # 허용 오리진 (콤마 구분, 예: http://localhost:5173)
-DDASOOM_SERVICE_URL              # 프론트 주소 (이메일 링크/소셜 콜백 리다이렉트)
-DDASOOM_OAUTH_KAKAO_CLIENT_ID    # 카카오 OAuth
-DDASOOM_OAUTH_NAVER_CLIENT_ID    # 네이버 OAuth
-DDASOOM_OAUTH_GOOGLE_CLIENT_ID   # 구글 OAuth
-```
+DDASOOM_MAIL_USERNAME         # SMTP 발신 구글 이메일
+DDASOOM_MAIL_PASSWORD         # 구글 16자리 앱 비밀번호 (공백 없이)
+DDASOOM_GOOGLE_CLIENT_ID      # 구글 OAuth client-id
+DDASOOM_GOOGLE_CLIENT_SECRET  # 구글 OAuth client-secret
+DDASOOM_KAKAO_CLIENT_ID       # 카카오 OAuth client-id
+DDASOOM_KAKAO_CLIENT_SECRET   # 카카오 OAuth client-secret
+DDASOOM_NAVER_CLIENT_ID       # 네이버 OAuth client-id
+DDASOOM_NAVER_CLIENT_SECRET   # 네이버 OAuth client-secret
+DDASOOM_PUBLIC_API_KEY        # 공공데이터포털(유기동물) 서비스 키
+DDASOOM_JWT_SECRET            # JWT HS512 서명 키 (BASE64)
 
-> 환경변수 등록 상세 가이드는 팀 노션 "환경변수 정리" 문서를 참고하세요. (MySQL/MinIO 로컬 접속 정보는 팀 로컬 표준값 사용)
+> JWT 유효기간(access/refresh-token-validity), CORS 허용 오리진, service-url(프론트 주소)은
+> 시크릿이 아니라 yml에 평문으로 관리합니다(로컬 표준값). MySQL/MinIO 로컬 접속 정보도 동일.
+> 환경변수 등록 상세는 팀 노션 "환경변수(시크릿) 정리" 표를 참고하세요.
 > Windows에서 `setx`로 등록한 경우, 터미널·IDE를 **완전히 재시작**해야 반영됩니다.
 
 ### 3. 실행
