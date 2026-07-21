@@ -1,6 +1,7 @@
 package com.paw.ddasoom.board.repository;
 
 import com.paw.ddasoom.board.domain.PostComment;
+import com.paw.ddasoom.board.dto.projection.AdminAllCommentListProjection;
 import com.paw.ddasoom.board.dto.projection.AdminCommentListProjection;
 import com.paw.ddasoom.board.dto.projection.CommentListProjection;
 import com.paw.ddasoom.board.dto.projection.MyCommentListProjection;
@@ -95,4 +96,14 @@ public interface PostCommentRepository extends JpaRepository<PostComment, Long> 
                     "WHERE c.member.id = :memberId AND c.deletedAt IS NULL AND p.deletedAt IS NULL"
     )
     Page<MyCommentListProjection> findMyComments(@Param("memberId") Long memberId, Pageable pageable);
+
+    @Query(
+            value = "SELECT new com.paw.ddasoom.board.dto.projection.AdminAllCommentListProjection(" +
+                    "c.id, m.id, m.nickname, c.content, p.id, p.title, p.boardType, " +
+                    "c.createdAt, c.updatedAt, c.deletedAt) " +
+                    "FROM PostComment c JOIN c.member m JOIN c.post p " +
+                    "ORDER BY c.createdAt DESC",
+            countQuery = "SELECT count(c) FROM PostComment c"
+    )
+    Page<AdminAllCommentListProjection> findAllCommentsForAdmin(Pageable pageable);
 }
