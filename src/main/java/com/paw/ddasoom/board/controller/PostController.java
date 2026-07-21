@@ -68,10 +68,13 @@ public class PostController {
         return ResponseEntity.ok(ApiResponse.success("게시글 목록을 조회했습니다.", response));
     }
 
-    /** 게시글 상세 조회 */
+    /** 게시글 상세 조회 — 조회수는 뷰어(memberId) 단위로 중복 제거되어 집계됨 (PostService 참고) */
     @GetMapping("/{postId}")
-    public ResponseEntity<ApiResponse<PostDetailResponse>> getPostDetail(@PathVariable(name = "postId") Long postId) {
-        PostDetailResponse response = postService.getPostDetail(postId);
+    public ResponseEntity<ApiResponse<PostDetailResponse>> getPostDetail(
+            @PathVariable(name = "postId") Long postId,
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        PostDetailResponse response =
+                postService.getPostDetail(postId, userDetails.getMemberId());
         return ResponseEntity.ok(ApiResponse.success("게시글을 조회했습니다.", response));
     }
 
