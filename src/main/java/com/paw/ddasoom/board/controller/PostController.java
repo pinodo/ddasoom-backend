@@ -35,7 +35,7 @@ public class PostController {
     @GetMapping("/my")
     public ResponseEntity<ApiResponse<PageResponse<MyPostResponse>>> getMyPosts(
             @AuthenticationPrincipal CustomUserDetails userDetails,
-            @RequestParam(required = false) String boardType,
+            @RequestParam(name = "boardType", required = false) String boardType,
             @PageableDefault(size = 10) Pageable pageable) {
         PageResponse<MyPostResponse> response =
                 postService.getMyPosts(userDetails.getMemberId(), boardType, pageable);
@@ -59,9 +59,9 @@ public class PostController {
     /** 전체 페이지 조회(기본 페이지네이션: 9), 카테고리, 보드타입 필요. keyword는 제목 부분일치 검색(선택) */
     @GetMapping
     public ResponseEntity<ApiResponse<PageResponse<PostResponse>>> getPostList(
-            @RequestParam String boardType,
-            @RequestParam(required = false) String category,
-            @RequestParam(required = false) String keyword,
+            @RequestParam(name = "boardType") String boardType,
+            @RequestParam(name = "category", required = false) String category,
+            @RequestParam(name = "keyword", required = false) String keyword,
             @PageableDefault(size = 9) Pageable pageable) {
         PageResponse<PostResponse> response =
                 postService.getPostList(boardType, category, keyword, pageable);
@@ -70,7 +70,7 @@ public class PostController {
 
     /** 게시글 상세 조회 */
     @GetMapping("/{postId}")
-    public ResponseEntity<ApiResponse<PostDetailResponse>> getPostDetail(@PathVariable Long postId) {
+    public ResponseEntity<ApiResponse<PostDetailResponse>> getPostDetail(@PathVariable(name = "postId") Long postId) {
         PostDetailResponse response = postService.getPostDetail(postId);
         return ResponseEntity.ok(ApiResponse.success("게시글을 조회했습니다.", response));
     }
@@ -89,7 +89,7 @@ public class PostController {
     @PatchMapping("/{postId}")
     public ResponseEntity<ApiResponse<Void>> updatePost(
             @AuthenticationPrincipal CustomUserDetails userDetails,
-            @PathVariable Long postId,
+            @PathVariable(name = "postId") Long postId,
             @Valid @RequestBody PostUpdateRequest request) {
         postService.updatePost(userDetails.getMemberId(), postId, request);
         return ResponseEntity.ok(ApiResponse.success("게시글이 수정되었습니다."));
@@ -99,7 +99,7 @@ public class PostController {
     @DeleteMapping("/{postId}")
     public ResponseEntity<ApiResponse<Void>> deletePost(
             @AuthenticationPrincipal CustomUserDetails userDetails,
-            @PathVariable Long postId) {
+            @PathVariable(name = "postId") Long postId) {
         postService.deletePost(userDetails.getMemberId(), postId);
         return ResponseEntity.ok(ApiResponse.success("게시글이 삭제되었습니다."));
     }
