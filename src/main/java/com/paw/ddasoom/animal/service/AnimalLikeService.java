@@ -1,6 +1,8 @@
 package com.paw.ddasoom.animal.service;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -53,6 +55,17 @@ public class AnimalLikeService {
   }
 
   /**
+   * 이 회원의 "아직 RDB에 반영되지 않은" 좋아요 변경 전체를 animalId -> liked(true/false) 맵으로 반환.
+   * "좋아요만" 필터처럼 대상 animalId를 미리 알 수 없을 때(전체 dirty를 훑어야 할 때) 사용한다.
+   */
+  public Map<Long, Boolean> getPendingLikeOverrides(Long memberId) {
+    Map<Long, Boolean> overrides = new HashMap<>();
+    collectOverrides(SNAPSHOT_KEY, memberId, overrides);
+    collectOverrides(DIRTY_KEY, memberId, overrides);
+    return overrides;
+  }
+
+  /**
    * 이 회원의 "아직 RDB에 반영되지 않은" 좋아요 변경을 animalId -> liked(true/false) 맵으로 변환.
    * 조회(목록 필터/카드 상태)에서 RDB 커밋 집합 위에 덮어씌워 read-your-writes(방금 누른 좋아요 즉시 반영)를 만든다.
    * 
@@ -60,10 +73,31 @@ public class AnimalLikeService {
    * dirty 해시 전체를 스캔한다. flush 주기(약 10초) 동안의 전역 변경만 담겨 보통 작음.
    * 규모가 커지면 회원별 키 분리(예: animal:like:dirty:{memberId})를 검토해야 함.
    */
-  public Map<Long, Boolean> getPendingLikeOverrides(Long memberId) {
+  public Map<Long, Boolean> getPendingLikeOverrides(Long memberId, List<Long> animalIds) {
+
+    if (animalIds.isEmpty()) {
+      return Map.of();
+    }
+
+    List<Object> fields = new ArrayList<>(animalIds.size());
+
+    for (Long animalId : animalIds) {
+      fields.add(field(animalId, memberId));
+    }
+
+    List<Object> snapshotValues = redisTemplate.opsForHash().multiGet(SNAPSHOT_KEY, fields);
+    List<Object> dirtyValues = redisTemplate.opsForHash().multiGet(DIRTY_KEY, fields);
+
     Map<Long, Boolean> overrides = new HashMap<>();
-    collectOverrides(SNAPSHOT_KEY, memberId, overrides);
-    collectOverrides(DIRTY_KEY, memberId, overrides);
+
+    for (int i = 0; i < animalIds.size(); i++) {
+      // dirty가 snapshot보다 최신 의도이므로 우선 적용
+      Object value = dirtyValues.get(i) != null ? dirtyValues.get(i) : snapshotValues.get(i);
+
+      if (value != null) {
+        overrides.put(animalIds.get(i), "1".equals(value));
+      }
+    }
     return overrides;
   }
 
@@ -82,21 +116,23 @@ public class AnimalLikeService {
         continue;
       }
 
+      Long fieldMemberId;
+      Long animalId;
       try {
         // memberId 파싱
-        Long fieldMemberId = Long.parseLong(fieldStr.substring(separatorIndex + 1));
+        fieldMemberId = Long.parseLong(fieldStr.substring(separatorIndex + 1));
         if (fieldMemberId.equals(memberId) == false) {
           continue;
         }
   
         // animalId 파싱
-        Long animalId = Long.parseLong(fieldStr.substring(0, separatorIndex));
+        animalId = Long.parseLong(fieldStr.substring(0, separatorIndex));
 
         // 값 "1"=좋아요, 그 외=취소 → 맵에 담기
-        out.put(animalId, "1".equals(entry.getValue()));
       } catch (NumberFormatException e) {
-        log.error("키값을 파싱하는 데 오류가 발생했습니다: {}", e);
+        continue; // 형식이 깨진 field는 건너뜀 (전체 조회가 500으로 죽지 않도록)
       }
+      out.put(animalId, "1".equals(entry.getValue()));
     }
   }
 
