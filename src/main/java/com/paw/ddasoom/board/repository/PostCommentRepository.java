@@ -1,17 +1,19 @@
 package com.paw.ddasoom.board.repository;
 
-import com.paw.ddasoom.board.domain.PostComment;
-import com.paw.ddasoom.board.dto.projection.AdminAllCommentListProjection;
-import com.paw.ddasoom.board.dto.projection.AdminCommentListProjection;
-import com.paw.ddasoom.board.dto.projection.CommentListProjection;
-import com.paw.ddasoom.board.dto.projection.MyCommentListProjection;
+import java.util.Optional;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-import java.util.Optional;
+import com.paw.ddasoom.board.domain.BoardType;
+import com.paw.ddasoom.board.domain.PostComment;
+import com.paw.ddasoom.board.dto.projection.AdminAllCommentListProjection;
+import com.paw.ddasoom.board.dto.projection.AdminCommentListProjection;
+import com.paw.ddasoom.board.dto.projection.CommentListProjection;
+import com.paw.ddasoom.board.dto.projection.MyCommentListProjection;
 
 /**
  * 게시글 댓글(post_comment) 레포지토리.
@@ -97,13 +99,38 @@ public interface PostCommentRepository extends JpaRepository<PostComment, Long> 
     )
     Page<MyCommentListProjection> findMyComments(@Param("memberId") Long memberId, Pageable pageable);
 
+    /**
+     * 관리자 전체 댓글 목록 — 검색·필터·페이징을 서버에서 처리한다.
+     *
+     * <p>검색(keyword)은 화면의 검색창과 동일하게 <b>댓글 내용 / 작성자 닉네임 / 게시글 제목</b> 세 필드를
+     * 부분일치로 훑는다. boardType은 선택 필터다.
+     *
+     * <p>⚠️ 정렬은 이 쿼리에 하드코딩하지 않는다 — Pageable의 Sort가 결정한다.
+     *    (하드코딩하면 요청 정렬이 2차 정렬로 밀려 사실상 무시된다.)
+     *    다만 이 화면은 정렬 UI가 없어 실제로는 컨트롤러가 넣는 기본 정렬(createdAt DESC)로 동작한다.
+     *
+     * <p>⚠️ countQuery에도 동일 조건을 넣어야 한다. 빠뜨리면 전체 건수가 필터와 무관하게 집계돼
+     *    "검색 결과 3건인데 페이지가 12개"인 상태가 된다.
+     */
     @Query(
             value = "SELECT new com.paw.ddasoom.board.dto.projection.AdminAllCommentListProjection(" +
                     "c.id, m.id, m.nickname, c.content, p.id, p.title, p.boardType, " +
                     "c.createdAt, c.updatedAt, c.deletedAt) " +
                     "FROM PostComment c JOIN c.member m JOIN c.post p " +
-                    "ORDER BY c.createdAt DESC",
-            countQuery = "SELECT count(c) FROM PostComment c"
+                    "WHERE (:boardType IS NULL OR p.boardType = :boardType) " +
+                    "  AND (:keyword IS NULL " +
+                    "       OR c.content LIKE CONCAT('%', :keyword, '%') " +
+                    "       OR m.nickname LIKE CONCAT('%', :keyword, '%') " +
+                    "       OR p.title LIKE CONCAT('%', :keyword, '%'))",
+            countQuery = "SELECT count(c) FROM PostComment c JOIN c.member m JOIN c.post p " +
+                    "WHERE (:boardType IS NULL OR p.boardType = :boardType) " +
+                    "  AND (:keyword IS NULL " +
+                    "       OR c.content LIKE CONCAT('%', :keyword, '%') " +
+                    "       OR m.nickname LIKE CONCAT('%', :keyword, '%') " +
+                    "       OR p.title LIKE CONCAT('%', :keyword, '%'))"
     )
-    Page<AdminAllCommentListProjection> findAllCommentsForAdmin(Pageable pageable);
+    Page<AdminAllCommentListProjection> findAllCommentsForAdmin(
+            @Param("boardType") BoardType boardType,
+            @Param("keyword") String keyword,
+            Pageable pageable);
 }

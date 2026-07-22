@@ -123,10 +123,18 @@ public class AdminPostService {
     }
 
     @Transactional(readOnly = true)
-    public PageResponse<AdminAllCommentResponse> getAllComments(Pageable pageable) {
-        Page<AdminAllCommentListProjection> page =
-                postCommentRepository.findAllCommentsForAdmin(pageable);
-        return PageResponse.of(page, AdminAllCommentResponse::from);
+    /**
+     * 관리자 전체 댓글 목록.
+     * @param boardType 게시판 필터 (null이면 전체)
+     * @param keyword   내용·작성자·게시글 제목 부분일치 (null/빈 문자열이면 검색 없음)
+     */
+    public PageResponse<AdminAllCommentResponse> getAllComments(BoardType boardType, String keyword, Pageable pageable) {
+        // 빈 문자열을 null로 정규화 — JPQL의 ":keyword IS NULL" 분기를 타게 해 전체 조회가 되도록
+        String normalizedKeyword = (keyword == null || keyword.isBlank()) ? null : keyword;
+
+        return PageResponse.of(
+                postCommentRepository.findAllCommentsForAdmin(boardType, normalizedKeyword, pageable),
+                AdminAllCommentResponse::from);
     }
 
     // ===== 강제삭제 =====
