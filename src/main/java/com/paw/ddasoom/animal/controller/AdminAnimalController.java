@@ -26,9 +26,14 @@ public class AdminAnimalController {
  
   @PostMapping("/sync")
   public ResponseEntity<ApiResponse<Void>> syncAnimals() {
+
+    long start = System.nanoTime();
+
     // AnimalSyncService가 JDBC 벌크 upsert로 바뀌면서 저장된 엔티티 목록 대신 건수(int)를 반환한다.
     int savedCount = animalSyncService.syncAnimals();
-    log.info("API 동물 {}건이 DB에 저장/갱신되었습니다.", savedCount);
+
+    long elapsedMs = (System.nanoTime() - start) / 1_000_000;
+    log.info("API 동물 {}건이 DB에 저장/갱신되었습니다. 걸린 시간: {}ms", savedCount, elapsedMs);
     return ResponseEntity.ok(ApiResponse.success("API 유기동물이 DB에 저장/갱신되었습니다."));
   }
 }
