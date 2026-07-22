@@ -1,11 +1,15 @@
 package com.paw.ddasoom.board.controller;
 
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.paw.ddasoom.board.domain.BoardType;
 import com.paw.ddasoom.board.dto.response.AdminAllCommentResponse;
 import com.paw.ddasoom.board.service.AdminPostService;
 import com.paw.ddasoom.common.dto.ApiResponse;
@@ -40,10 +44,15 @@ public class AdminCommentController {
      */
     @GetMapping
     public ResponseEntity<ApiResponse<PageResponse<AdminAllCommentResponse>>> getComments(
-            @RequestParam(name = "page", defaultValue = "0") int page,
-            @RequestParam(name = "size", defaultValue = "20") int size) {
+            @RequestParam(name = "boardType", required = false) BoardType boardType,
+            @RequestParam(name = "keyword", required = false) String keyword,
+            @PageableDefault(size = 20) Pageable pageable) {
+        // 이 화면은 정렬 UI가 없어 화이트리스트를 비워 기본 정렬(작성일 최신순)로 고정한다.
+        // 나중에 정렬을 추가하면 허용 프로퍼티만 여기에 나열하면 된다.
+        Pageable safePageable = PageableSanitizer.sanitize(pageable,
+                Sort.by(Sort.Direction.DESC, "createdAt"));
         return ResponseEntity.ok(ApiResponse.success(
-                adminPostService.getAllComments(PageableSanitizer.of(page, size))));
+                adminPostService.getAllComments(boardType, keyword, safePageable)));
     }
 
     
