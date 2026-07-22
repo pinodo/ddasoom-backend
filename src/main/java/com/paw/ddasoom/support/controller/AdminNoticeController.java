@@ -53,7 +53,7 @@ public class AdminNoticeController {
         return ResponseEntity.ok(ApiResponse.success(noticeService.getAdminNotice(noticeId)));
     }
 
-  // 3. 공지사항 등록
+    // 3. 공지사항 등록
     @PostMapping
     public ResponseEntity<ApiResponse<NoticeResponse>> createNotice(
             @AuthenticationPrincipal CustomUserDetails userDetails,
@@ -66,9 +66,11 @@ public class AdminNoticeController {
     // 4. 공지사항 전체 수정
     @PutMapping("/{noticeId}")
     public ResponseEntity<ApiResponse<NoticeResponse>> updateNotice(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
             @PathVariable("noticeId") Long noticeId,
             @Valid @RequestBody NoticeUpdateRequest request) {
-        return ResponseEntity.ok(ApiResponse.success(noticeService.updateNotice(noticeId, request)));
+        return ResponseEntity.ok(ApiResponse.success(
+                noticeService.updateNotice(userDetails.getMemberId(), noticeId, request)));
     }
 
     // 5. 공지사항 노출 여부
